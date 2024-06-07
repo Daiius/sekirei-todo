@@ -7,3 +7,44 @@
 - セキレイのかわいいアイコンをメインに配置して、リアルに尻尾を振る
 - Server Componentも使用し、Client ComponentとのCompositionを試みる
 - drizzle orm によるデータベースとのやり取りを行う
+
+## DB設計
+- タスクをプロジェクト毎に管理できるようにする
+- （他のユーザはいないと思うが）ユーザごとに確実にデータを分ける
+
+```plantuml
+hide circle
+skinparam linetype ortho
+entity Users {
+  * id: varchar(128) <<unique username>>
+  * passWithSalt: binary(256)
+  --
+}
+
+entity Projects {
+  * id: varchar(256) <<Project name, unique per user>>
+  * userId: varchar(128)
+}
+
+entity Tasks {
+  * id: bigint autoincrement
+  * userId: 
+}
+
+Users ||--o{ Projects
+Users ||--o{ Tasks
+Tasks }o--o| Projects
+```
+- Userから見ると...
+  - 関連するTasksは0個かもしれないし、多数かもしれない
+  - 関連するProjectsは0個かもしれないし、多数かもしれない
+- Tasksから見ると...
+  - 関連するUsersはただ1つのみ
+  - 関連するProjectsは0個かただ1つのみ
+- Projectsから見ると...
+  - 関連するUsersはただ1つのみ
+  - 関連するTasksは0個かもしれないし、多数かもしれない
+
+...つまり、複数のユーザがタスクやプロジェクトを共有しようとすると、
+この設計ではうまくいかないことになる...(が、最初はこれでいいか...)
+
