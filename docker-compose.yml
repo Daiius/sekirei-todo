@@ -1,0 +1,19 @@
+services:
+  sekirei-todo-nextjs:
+    build:
+      dockerfile: ./Dockerfile.nextjs
+    container_name: sekirei-todo-nextjs
+    ports:
+      - 3000:3000
+  sekirei-todo-database:
+    image: mysql:latest
+    container_name: sekirei-todo-database
+    env_file:
+      - .env.mysql
+    # 開発環境ではDBコンテナの立ち上がりタイミングはシビアでないので
+    # healthcheckを指定しないでおく
+
+networks:
+  default:
+    name: sekirei-todo-network
+

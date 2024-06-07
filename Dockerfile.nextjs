@@ -1,0 +1,12 @@
+FROM node:20
+
+# .dockerignoreに.next/ やstorybook関連のフォルダを指定しているので、
+# それ以外のファイルがすべてコピーされる
+# ちょっと雑だがnode_modulesもコピーしてしまう
+RUN npm install -g pnpm
+COPY . .
+
+RUN pnpm install 
+
+CMD ["pnpm", "run", "dev"]
+
