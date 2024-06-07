@@ -8,14 +8,22 @@ services:
     env_file:
       - .env.common
       - .env.nextjs
+    depends_on:
+      sekirei-todo-database:
+        condition: service_healthy
+
   sekirei-todo-database:
     image: mysql:latest
     container_name: sekirei-todo-database
     env_file:
       - .env.mysql
       - .env.common
-    # 開発環境ではDBコンテナの立ち上がりタイミングはシビアでないので
-    # healthcheckを指定しないでおく
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 20s
+      retires: 3
+      start_period: 5s
 
 networks:
   default:
