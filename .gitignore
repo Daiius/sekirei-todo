@@ -38,4 +38,4 @@ next-env.d.ts
 *storybook.log
 
 # Add project specific settings...
-.env
+.env*
