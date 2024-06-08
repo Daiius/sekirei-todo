@@ -1,0 +1,7 @@
+{
+  "name": "database",
+  "version": "0.1.0",
+  "devDependencies": {
+    "drizzle-kit": "^0.22.5"
+  }
+}
