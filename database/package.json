@@ -3,5 +3,9 @@
   "version": "0.1.0",
   "devDependencies": {
     "drizzle-kit": "^0.22.5"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.31.2",
+    "mysql2": "^3.10.0"
   }
 }

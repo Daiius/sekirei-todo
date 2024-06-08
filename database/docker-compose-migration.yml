@@ -1,0 +1,46 @@
+services:
+  sekirei-todo-migration:
+    build:
+      dockerfile: ./Dockerfile.migration
+    container_name: sekirei-todo-database-migration
+    ports:
+      - 3000:3000
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      DB_HOST: sekirei-todo-database
+    volumes:
+      - .:/app
+    depends_on:
+      sekirei-todo-database:
+        condition: service_healthy
+
+  sekirei-todo-database:
+    # mysql:8.4 系だとnative password関連のエラーで、
+    # mysql clientからアクセスできず、
+    # healthcheckのtestコマンドが通らない
+    image: mysql:8.0-debian
+    container_name: sekirei-todo-database-database
+    env_file:
+      - ../.env
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      TZ: 'Asia/Tokyo'
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysql', '-u', '$MYSQL_USER', '-p$MYSQL_PASSWORD', '$MYSQL_DATABASE', '-e', 'select 1;']
+      interval: 5s
+      timeout: 20s
+      retries: 3
+      start_period: 5s
+
+networks:
+  default:
+    name: sekirei-todo-database-network
+
