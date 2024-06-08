@@ -69,9 +69,6 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.0
         version: 18.3.0
-      drizzle-kit:
-        specifier: ^0.22.5
-        version: 0.22.5
       eslint:
         specifier: ^8.57.0
         version: 8.57.0
@@ -93,6 +90,12 @@ importers:
       typescript:
         specifier: ^5.4.5
         version: 5.4.5
+
+  database:
+    devDependencies:
+      drizzle-kit:
+        specifier: ^0.22.5
+        version: 0.22.5
 
 packages:
 

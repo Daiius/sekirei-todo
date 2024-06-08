@@ -11,7 +11,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "generate": "drizzle-kit generate",
-    "push": "drizzle-kit push"
+    "push": "drizzle-kit push",
+    "database": "pnpm -F \"database\""
   },
   "dependencies": {
     "@headlessui/react": "^2.0.4",
@@ -36,7 +37,6 @@
     "@types/node": "^20.14.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "drizzle-kit": "^0.22.5",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.3",
     "eslint-plugin-storybook": "^0.8.0",
