@@ -3,30 +3,31 @@ import {
   serial,
   boolean,
   date,
-  mysqlSchema,
+  mysqlTable,
   primaryKey,
   timestamp,
   varchar,
+  index,
 } from 'drizzle-orm/mysql-core';
 
-export const schema = mysqlSchema(process.env.MYSQL_DATABASE!);
 
-export const users = schema.table('Users', {
+export const users = mysqlTable('Users', {
   id:
     varchar('id', { length: 128 })
     .notNull()
     .primaryKey(),
   passWithSalt:
-    binary('passWIthSalt', { length: 256 })
+    binary('passWithSalt', { length: 32 })
     .notNull(),
   createdAt:
     timestamp('createdAt')
     .defaultNow(),
 });
 
-export const projects = schema.table('Projects', {
+export const projects = mysqlTable('Projects', {
   id: 
     varchar('id', { length: 256 })
+    .unique()
     .notNull(),
   userId: 
     varchar('userId', { length: 128 })
@@ -40,10 +41,11 @@ export const projects = schema.table('Projects', {
   }),
 );
 
-export const tasks = schema.table('Tasks', {
+export const tasks = mysqlTable('Tasks', {
   id:
     serial('id')
-    .notNull(),
+    .notNull()
+    .primaryKey(),
   userId: 
     varchar('userId', { length: 128 })
     .notNull()

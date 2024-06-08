@@ -6,23 +6,29 @@ services:
     ports:
       - 3000:3000
     env_file:
-      - .env.common
-      - .env.nextjs
+      - .env
+    volumes:
+      - .:/app
     depends_on:
       sekirei-todo-database:
         condition: service_healthy
 
   sekirei-todo-database:
-    image: mysql:latest
+    build:
+      dockerfile: Dockerfile.mysql
+      args:
+        MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+        MYSQL_DATABASE: $MYSQL_DATABASE
+        MYSQL_USER: $MYSQL_USER
+        MYSQL_PASSWORD: $MYSQL_PASSWORD
     container_name: sekirei-todo-database
     env_file:
-      - .env.mysql
-      - .env.common
+      - .env
     healthcheck:
       test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
       interval: 5s
       timeout: 20s
-      retires: 3
+      retries: 3
       start_period: 5s
 
 networks:
