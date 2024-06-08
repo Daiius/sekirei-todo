@@ -1,5 +1,5 @@
 
-FROM mysql:latest as build
+FROM mysql:8.0-debian as build
 ARG MYSQL_ROOT_PASSWORD
 ARG MYSQL_DATABASE
 ARG MYSQL_USER
@@ -18,7 +18,7 @@ RUN ["sed", "-i", "s/exec \"$@\"/echo \"not running $@\"/", "/usr/local/bin/dock
 
 RUN docker-entrypoint.sh mysqld
 
-FROM mysql:latest
+FROM mysql:8.0-debian
 ARG MYSQL_ROOT_PASSWORD
 ARG MYSQL_DATABASE
 ARG MYSQL_USER
