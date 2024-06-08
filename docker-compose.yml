@@ -1,0 +1,35 @@
+services:
+  sekirei-todo-nextjs:
+    build:
+      dockerfile: ./Dockerfile.nextjs
+    container_name: sekirei-todo-nextjs
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      sekirei-todo-database:
+        condition: service_healthy
+
+  sekirei-todo-database:
+    image: mysql:8.0-debian
+    container_name: sekirei-todo-database
+    env_file:
+      - .env
+    environment:
+      TZ: 'Asia/Tokyo'
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysql', '-u', '$MYSQL_USER', '-p$MYSQL_PASSWORD', '$MYSQL_DATABASE', '-e', 'select 1;']
+      interval: 5s
+      timeout: 20s
+      retries: 3
+      start_period: 5s
+
+networks:
+  default:
+    name: sekirei-todo-network
+

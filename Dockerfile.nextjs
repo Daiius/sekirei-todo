@@ -1,0 +1,8 @@
+FROM node:20
+
+WORKDIR /app
+
+RUN npm install -g pnpm
+
+CMD ["bash", "-c", "pnpm run push && pnpm run dev"]
+
