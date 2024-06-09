@@ -4,5 +4,5 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 
-CMD ["bash", "-c", "pnpm run push && pnpm run dev"]
+CMD ["pnpm", "run", "dev"]
 

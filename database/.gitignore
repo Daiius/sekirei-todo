@@ -1,0 +1,6 @@
+.drizzle/
+
+node_modules/
+
+*.sql.gz
+
