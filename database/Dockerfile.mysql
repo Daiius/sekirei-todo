@@ -1,4 +1,3 @@
-
 FROM mysql:8.0-debian as build
 ARG MYSQL_ROOT_PASSWORD
 ARG MYSQL_DATABASE
@@ -10,9 +9,8 @@ ENV MYSQL_USER=$MYSQL_USER
 ENV MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
 ENV MYSQL_PASSWORD=$MYSQL_PASSWORD
 
-# 初期化時に実行が必要なSQL類をコピー
-# 今は必要ないので空
-# COPY *.sql /docker-entrypoint-initdb.d/
+# テストデータをコピー
+COPY test_dump.sql.gz /docker-entrypoint-initdb.d/
 
 RUN ["sed", "-i", "s/exec \"$@\"/echo \"not running $@\"/", "/usr/local/bin/docker-entrypoint.sh"]
 

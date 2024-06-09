@@ -31,8 +31,8 @@ services:
       MYSQL_PASSWORD: $MYSQL_PASSWORD
       MYSQL_DATABASE: $MYSQL_DATABASE
       TZ: 'Asia/Tokyo'
-    tmpfs:
-      - /var/lib/mysql
+    #tmpfs:
+      #- /var/lib/mysql
     healthcheck:
       test: ['CMD', 'mysql', '-u', '$MYSQL_USER', '-p$MYSQL_PASSWORD', '$MYSQL_DATABASE', '-e', 'select 1;']
       interval: 5s

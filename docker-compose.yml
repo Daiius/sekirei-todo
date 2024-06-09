@@ -14,16 +14,26 @@ services:
         condition: service_healthy
 
   sekirei-todo-database:
-    image: mysql:8.0-debian
+    build:
+      context: ./database
+      dockerfile: Dockerfile.mysql
+      args:
+        MYSQL_USER: $MYSQL_USER
+        MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+        MYSQL_DATABASE: $MYSQL_DATABASE
+        MYSQL_PASSWORD: $MYSQL_PASSWORD
     container_name: sekirei-todo-database
     env_file:
       - .env
     environment:
       TZ: 'Asia/Tokyo'
-    tmpfs:
-      - /var/lib/mysql
     healthcheck:
-      test: ['CMD', 'mysql', '-u', '$MYSQL_USER', '-p$MYSQL_PASSWORD', '$MYSQL_DATABASE', '-e', 'select 1;']
+      # こちらはデータ初期化時にtemporal serverが立ち上がるのを
+      # きちんと待つためのコマンド
+      #test: ['CMD', 'mysql', '-u', '$MYSQL_USER', '-p$MYSQL_PASSWORD', '$MYSQL_DATABASE', '-e', 'select 1;']
+      # こちらはマルチステージビルドであらかじめ初期化を済ませた
+      # temporal serverが立ち上がらないとき用の簡易コマンド
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
       interval: 5s
       timeout: 20s
       retries: 3
