@@ -17,7 +17,7 @@ export const users = mysqlTable('Users', {
     .notNull()
     .primaryKey(),
   passWithSalt:
-    binary('passWithSalt', { length: 32 })
+    varchar('passWithSalt', { length: 128 })
     .notNull(),
   createdAt:
     timestamp('createdAt')
