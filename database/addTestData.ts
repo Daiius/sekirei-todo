@@ -1,7 +1,7 @@
 import { db } from './db';
 import { users, tasks } from './db/schema';
 
-import { hashWithSalt } from '../src/lib/crypto';
+import { hashWithSalt } from './crypto';
 
 await db.insert(users).values([
   { 
