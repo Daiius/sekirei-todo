@@ -9,7 +9,9 @@ if [ -f $envpath ]; then
 fi
 
 # マイグレーションの実行
-docker compose -f docker-compose-migration.yml \
+docker compose \
+  -f docker-compose-migration.yml \
+  -f docker-compose-migration-dev.yml \
   up --build --exit-code-from sekirei-todo-migration
 
 echo "Migration done!"
@@ -19,16 +21,17 @@ echo "Migration done!"
 # DBコンテナは立てっぱなしにできたらうれしい
 # 注. --waitオプションは重要、これがないと接続できない旨のエラーが出る
 docker compose -f docker-compose-migration.yml \
-  up -d sekirei-todo-database --wait
+  up -d --wait
 
 echo "RestartedDB container!"
 
 # テストデータの追記
-docker compose -f docker-compose-migration.yml \
-  exec -t sekirei-todo-database \
-  mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE \
-  < initdb/*.sql
-echo Added test data!
+# マイグレーション用のコンテナ内で行うように変更
+#docker compose -f docker-compose-migration.yml \
+#  exec -t sekirei-todo-database \
+#  mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE \
+#  < initdb/*.sql
+#echo Added test data!
 
 # ダンプの作成
 docker compose -f docker-compose-migration.yml \

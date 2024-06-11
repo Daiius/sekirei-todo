@@ -1,13 +1,10 @@
 import {
-  binary,
   serial,
   boolean,
-  date,
   mysqlTable,
   primaryKey,
   timestamp,
   varchar,
-  index,
 } from 'drizzle-orm/mysql-core';
 
 
@@ -44,8 +41,7 @@ export const projects = mysqlTable('Projects', {
 export const tasks = mysqlTable('Tasks', {
   id:
     serial('id')
-    .notNull()
-    .primaryKey(),
+    .notNull() .primaryKey(),
   userId: 
     varchar('userId', { length: 128 })
     .notNull()
