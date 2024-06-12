@@ -112,6 +112,9 @@ importers:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@20.14.2)(typescript@5.4.5)
     devDependencies:
+      '@types/node':
+        specifier: ^20.14.2
+        version: 20.14.2
       drizzle-kit:
         specifier: ^0.22.5
         version: 0.22.5

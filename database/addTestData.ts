@@ -1,4 +1,4 @@
-import { db } from './db';
+import { db, connection } from './db';
 import { users, tasks } from './db/schema';
 
 import { hashWithSalt } from './crypto';
@@ -17,4 +17,6 @@ await db.insert(tasks).values([
     description: 'this is a test task!',
   }
 ]);
+
+await connection.end();
 

@@ -1,7 +1,9 @@
 {
   "name": "database",
   "version": "0.1.0",
+  "type": "module",
   "devDependencies": {
+    "@types/node": "^20.14.2",
     "drizzle-kit": "^0.22.5"
   },
   "dependencies": {
