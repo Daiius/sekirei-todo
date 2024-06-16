@@ -5,10 +5,13 @@
  */
 
 
-import useSWR from 'swr';
+import useSWR, { SWRResponse } from 'swr';
+import { GetApiTypes } from '@/types/api';
 
-const useTypedSWR = <TypeDict>(url: keyof TypeDict) => 
-  useSWR<TypeDict[typeof url]>(
+const useTypedSWR = <Url extends keyof GetApiTypes>(
+  url: keyof GetApiTypes
+): SWRResponse<GetApiTypes[Url]> => 
+  useSWR<GetApiTypes[typeof url]>(
     url as string,
     (url: string) => fetch(url).then(response => response.json())
   );

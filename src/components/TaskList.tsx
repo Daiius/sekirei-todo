@@ -1,17 +1,33 @@
 'use client'
 
 import React from 'react';
-import useTypedSWR from '@/hooks/useTypedSWR';
-import type { GetApiTypes } from '@/app/api/tasks/route';
+import Button from '@/components/Button';
+
+import { getTasks, addTask } from '@/actions/tasksActions';
+import useSWR from 'swr';
 
 const TaskList: React.FC = () => {
-  // conditional fetch はできなくなってしまうのか...
-  const { data: tasks } = useTypedSWR<GetApiTypes>('/api/tasks');
+  const { data: tasks, mutate } = useSWR(
+    '/api/tasks', 
+    (url: string) => getTasks().then(t => t),
+    { refreshInterval: 10_000 }
+  );
+
+  console.log(swrTasks);
+
   return (
     <div>
       {tasks?.map(task =>
-        <div>{task.description}</div>
+        <div key={task.id}>{task.description}</div>
       )}
+      <Button
+        onClick={async () => {
+          await addTask({ userId: 'tester', description: 'test task!' });
+          mutate();
+        }}
+      >
+        Test!
+      </Button>
     </div>
   );
 };
