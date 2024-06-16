@@ -3,17 +3,19 @@
 import React from 'react';
 import Button from '@/components/Button';
 
-import { getTasks, addTask } from '@/actions/tasksActions';
+import {
+  getTasks,
+  addTask,
+  GetTasksActionKey
+} from '@/actions/tasksActions';
 import useSWR from 'swr';
 
 const TaskList: React.FC = () => {
   const { data: tasks, mutate } = useSWR(
-    '/api/tasks', 
-    (url: string) => getTasks().then(t => t),
+    GetTasksActionKey, 
+    (_url: string) => getTasks().then(t => t),
     { refreshInterval: 10_000 }
   );
-
-  console.log(swrTasks);
 
   return (
     <div>
