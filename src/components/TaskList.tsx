@@ -6,7 +6,6 @@ import Button from '@/components/Button';
 import {
   getTasks,
   addTask,
-  GetTasksActionKey
 } from '@/actions/tasksActions';
 import useSWR from 'swr';
 
