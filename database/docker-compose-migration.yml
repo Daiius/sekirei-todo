@@ -3,14 +3,14 @@ services:
     build:
       dockerfile: ./Dockerfile.migration
     container_name: sekirei-todo-database-migration
-    ports:
-      - 3000:3000
-    environment:
-      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
-      MYSQL_USER: $MYSQL_USER
-      MYSQL_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_DATABASE: $MYSQL_DATABASE
-      DB_HOST: sekirei-todo-database
+    env_file:
+      - ../.env
+      #environment:
+      #  MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      #  MYSQL_USER: $MYSQL_USER
+      #  MYSQL_PASSWORD: $MYSQL_PASSWORD
+      #  MYSQL_DATABASE: $MYSQL_DATABASE
+      #  DB_HOST: sekirei-todo-database
     volumes:
       - .:/app
     depends_on:
@@ -26,10 +26,10 @@ services:
     env_file:
       - ../.env
     environment:
-      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
-      MYSQL_USER: $MYSQL_USER
-      MYSQL_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_DATABASE: $MYSQL_DATABASE
+      #MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      #MYSQL_USER: $MYSQL_USER
+      #MYSQL_PASSWORD: $MYSQL_PASSWORD
+      #MYSQL_DATABASE: $MYSQL_DATABASE
       TZ: 'Asia/Tokyo'
     #tmpfs:
       #- /var/lib/mysql

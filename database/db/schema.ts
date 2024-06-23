@@ -7,8 +7,6 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core';
 
-import {createInsertSchema, createSelectSchema} from 'drizzle-zod';
-
 
 export const users = mysqlTable('Users', {
   id:
@@ -23,7 +21,6 @@ export const users = mysqlTable('Users', {
     .defaultNow(),
 });
 
-export const insertUsersSchema = createInsertSchema(users);
 
 export const projects = mysqlTable('Projects', {
   id: 
@@ -42,10 +39,6 @@ export const projects = mysqlTable('Projects', {
   }),
 );
 
-export const insertProjectsSchema = createInsertSchema(projects, /*{
-  id:
-    (schema) => schema.id.max(128, 'プロジェクト名が長過ぎます'),
-}*/);
 
 export const tasks = mysqlTable('Tasks', {
   id:
@@ -72,11 +65,4 @@ export const tasks = mysqlTable('Tasks', {
   pk: primaryKey({ columns: [table.id, table.userId] }),
 }),
 );
-
-export const selectTaskSchema = createSelectSchema(tasks);
-
-export const insertTasksSchema = createInsertSchema(tasks, /*{
-  description: 
-    (schema) => schema.description.max(512, 'タスク内容が長過ぎます')
-}*/);
 
