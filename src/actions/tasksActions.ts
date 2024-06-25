@@ -5,8 +5,6 @@ import { cookies } from 'next/headers';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
 
-export const GetTasksActionKey = '/action/tasks' as const;
-
 export const getTasks = async () => db.select().from(tasks);
 
 export const addTask = async (

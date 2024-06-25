@@ -1,6 +1,6 @@
 
 import { db } from '@/db';
-import { tasks, insertTasksSchema } from '@/db/schema';
+import { tasks } from '@/db/schema';
 import { ApiBodyType } from '@/lib/common';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -22,15 +22,7 @@ export const GET = async () => NextResponse.json(
 
 export const POST = async (request: NextRequest) => {
   const data = await request.json();
-  const parseResult = insertTasksSchema.safeParse(data);
-  if (parseResult.success) {
     await db.insert(tasks).values(data);
     return NextResponse.json(data);
-  } else {
-    return NextResponse.json(
-      parseResult.error, 
-      { status: 400 }
-    );
-  }
 };
 

@@ -7,7 +7,10 @@ await db.insert(users).values([
   { 
     id: 'tester', 
     passWithSalt: 
-      await hashWithSalt('password', process.env.HASH_SALT!),
+      await hashWithSalt(
+        'password', 
+        process.env.HASH_SALT 
+          ?? (() => { throw Error('HASH_SALT env is undefined!'); })()),
   }
 ]);
 
