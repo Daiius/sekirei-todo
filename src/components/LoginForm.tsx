@@ -12,8 +12,18 @@ export default function LoginForm() {
 
   return (
     <form action={formAction} className='flex flex-col gap-1 w-[60%] self-center p-5'>
-      <input type='text' name='username' placeholder='User name' required />
-      <input type='password' name='password' placeholder='Password' required />
+      <input 
+        type='text' 
+        name='username' 
+        placeholder='User name' 
+        required 
+      />
+      <input 
+        type='password' 
+        name='password' 
+        placeholder='Password' 
+        required
+      />
       <button aria-disabled={isPending}>
         Login
       </button>

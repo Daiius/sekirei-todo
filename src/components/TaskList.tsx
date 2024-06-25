@@ -7,6 +7,8 @@ import {
   getTasks,
   addTask,
 } from '@/actions/tasksActions';
+import { logOut } from '@/actions/authenticate';
+
 import useSWR from 'swr';
 
 const TaskList: React.FC = () => {
@@ -30,6 +32,9 @@ const TaskList: React.FC = () => {
         }}
       >
         Test!
+      </Button>
+      <Button onClick={async () => await logOut()}>
+        Logout
       </Button>
     </div>
   );

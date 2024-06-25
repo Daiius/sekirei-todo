@@ -7,7 +7,6 @@ import { eq } from 'drizzle-orm';
 import {users} from "@/db/schema";
 import { hashWithSalt } from '@/lib/crypto';
 
-import bcrypt from 'bcrypt';
 
 declare module 'next-auth' {
   interface User {
@@ -34,20 +33,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         username: {},
         password: {},
       },
-      authorize: async (credentials) => {
+      async authorize(credentials) {
         const parsedCredentials = z
           .object({ username: z.string(), password: z.string() })
           .safeParse(credentials);
         if (parsedCredentials.success) {
           const { username, password } = parsedCredentials.data;
-          console.log('salt: ', process.env.HASH_SALT!);
           const hashedPassword = await hashWithSalt(password, process.env.HASH_SALT!);
-          console.log('hashedPassword: ', hashedPassword);
           const user = await getUser(username);
-          console.log('user: ', user);
           if (!user) return null;
           const passwordsMatch = (hashedPassword === user.passWithSalt);
-          console.log('passwordsMatch: ', passwordsMatch);
           if (passwordsMatch) return user;
         }
         return null;
