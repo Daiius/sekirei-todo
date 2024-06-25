@@ -1,0 +1,3 @@
+services:
+  sekirei-todo-nextjs:
+    command: bash -c "pnpm next build && pnpm next start"
