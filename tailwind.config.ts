@@ -13,7 +13,16 @@ const config: Config = {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+        "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      },
+      animation: {
+        'tail-wag': 'tail-wag-keyframes 1s infinite',
+      },
+      keyframes: {
+        'tail-wag-keyframes': {
+          '0%'  : { transform: 'rotate(0deg)' },
+          '50%' : { transform: 'rotate(45deg)' },
+        },
       },
     },
   },
