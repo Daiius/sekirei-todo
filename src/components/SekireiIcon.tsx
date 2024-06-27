@@ -1,27 +1,43 @@
 import React from 'react';
+import clsx from 'clsx';
 
-const SekireiBody: React.FC<React.ComponentProps<'div'>> = (props) => (
-  <div {...props}>
-  <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="50" cy="30" r="10" fill="black" />
-    <rect x="45" y="40" width="10" height="20" fill="black" />
-    <circle cx="50" cy="50" r="5" fill="white" />
-  </svg>
-  </div>
+const SekireiBody: React.FC<React.ComponentProps<'svg'>> = (props) => (
+    <svg 
+      width="100" height="100" 
+      viewBox="0 0 256 256" 
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path 
+        id='path6'
+        d="M 63.881264,201.36365 77.219314,194.93859 82.308148,201.75753 M 54.508914,187.89606 68.638163,181.73671 72.99957,187.79467 M 96.199688,147.11109 98.92136,159.86896 72.99957,201.75753 M 89.435808,145.54986 91.616718,153.10789 63.461968,188.18568 M 194.01104,136.59752 C 156.246,139.7599 145.4977,140.36712 128.85103,145.90609 101.61616,155.24602 39.085449,139.15995 37.818249,85.400347 37.47478,70.829078 38.943138,71.505536 38.943138,64.880118 38.943138,64.880118 33.701991,50.188444 26.456694,49.13386 15.368435,47.718285 9.1258979,49.270629 3.1852571,47.392687 M 3.1852571,47.392687 C 6.9808889,43.511761 11.408624,44.20404 22.51958,42.175954 27.173868,40.684858 33.595271,33.15321 45.073845,31.672184 55.927394,30.271801 66.53808,36.094219 71.43113,46.464597 73.558169,50.972663 77.653854,64.181888 82.308148,66.783196 123.40132,89.43406 160.25179,119.9381 194.01104,136.59752"
+      />
+    </svg>
 );
 
-const SekireiTail: React.FC<React.ComponentProps<'div'>> = (props) => (
-  <div {...props}>
-  <svg width="20" height="50" viewBox="0 0 20 50" xmlns="http://www.w3.org/2000/svg">
-    <rect x="5" y="0" width="10" height="50" fill="black" />
+const SekireiTail: React.FC<React.ComponentProps<'svg'>> = (props) => (
+  <svg width="100" height="100" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path
+       d="M 151.18069,117.16674 C 185.19644,133.54469 223.57912,148.91489 253.22793,166.3006 251.62726,167.48523 249.73172,166.90065 247.83361,166.3006 214.63015,150.72722 179.21948,139.43475 143.62163,128.50532 Z"
+       id="path7"
+    />
   </svg>
-  </div>
 );
 
 const SekireiIcon: React.FC = () => (
   <div>
-    <SekireiTail className='animate-tail-wag' />
-    <SekireiBody />
+    <SekireiTail 
+      className={clsx(
+        'absolute animate-tail-wag top-0',
+        'stroke-white fill-slate-400 stroke-2',
+      )}
+    />
+    <SekireiBody 
+      className={clsx(
+        'absolute top-0', 
+        'stroke-white stroke-2 fill-slate-400',
+      )}
+    />
   </div>
 );
 
