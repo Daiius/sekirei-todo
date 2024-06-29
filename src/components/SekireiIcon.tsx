@@ -8,7 +8,7 @@ const SekireiBody: React.FC<React.ComponentProps<'div'>> = (
 ) => (
   <div {...props}>
     <Image
-      width={100} height={100}
+      width={200} height={200}
       src='/sekirei_body_fill.svg'
       //src='/sekirei_body_fill.png'
       alt='sekirei icon body'
@@ -21,7 +21,7 @@ const SekireiTail: React.FC<React.ComponentProps<'div'>> = (
 ) => (
   <div {...props}>
     <Image
-      width={100} height={100}
+      width={200} height={200}
       src='/sekirei_tail_fill.svg'
       alt='sekirei icon tail'
     />
@@ -29,16 +29,17 @@ const SekireiTail: React.FC<React.ComponentProps<'div'>> = (
 );
 
 const SekireiIcon: React.FC = () => (
-  <div>
+  <div className='size-[200px] bg-gradient-radial from-slate-400 from-60% to-slate-200/10'>
     <SekireiTail 
       className={clsx(
-        'absolute animate-tail-wag top-0',
+        'absolute animate-tail-wag',
         'stroke-white fill-slate-400 stroke-2',
+        'origin-[60%_50%]',
       )}
     />
     <SekireiBody 
       className={clsx(
-        'absolute top-0', 
+        'absolute', 
         'stroke-white stroke-2 fill-slate-400',
       )}
     />

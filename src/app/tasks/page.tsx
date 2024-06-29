@@ -1,6 +1,9 @@
 import clsx from 'clsx';
 
-export default function Home() {
+import TaskList from '@/components/TaskList';
+import SekireiIcon from '@/components/SekireiIcon';
+
+export default function TasksPage() {
   return (
     <main className={clsx(
       "flex min-h-screen flex-col items-center justify-between p-24"
@@ -9,8 +12,10 @@ export default function Home() {
         "z-10 w-full max-w-5xl items-center justify-between",
         "font-mono text-sm lg:flex"
       )}>
-        <div>This is a test page of sekirei todo!</div>
+        <SekireiIcon />
+        <TaskList />
       </div>
     </main>
   );
 }
+

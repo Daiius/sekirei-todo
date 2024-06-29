@@ -8,15 +8,12 @@ export const authConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      console.log('auth: ', auth);
-      console.log('nextUrl: ', nextUrl);
       const isLoggedIn = !!auth?.user;
-      const isOnRoot = nextUrl.pathname === '/';
-      if (isOnRoot) {
-        if (isLoggedIn) return true;
-        return false;
+      const isOnTasks = nextUrl.pathname.startsWith('/tasks')
+      if (isOnTasks) {
+        return isLoggedIn;
       } else if (isLoggedIn) {
-        return Response.redirect(new URL('/', nextUrl));
+        return Response.redirect(new URL('/tasks', nextUrl));
       }
       return true;
     }
