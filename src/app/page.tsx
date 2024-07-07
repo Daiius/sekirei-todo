@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import TaskList from '@/components/TaskList';
 import SekireiIcon from '@/components/SekireiIcon';
 
-export default function Home() {
+export default function TasksPage() {
   return (
     <main className={clsx(
       "flex min-h-screen flex-col items-center justify-between p-24"
@@ -18,3 +18,4 @@ export default function Home() {
     </main>
   );
 }
+

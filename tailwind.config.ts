@@ -16,12 +16,12 @@ const config: Config = {
         "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       animation: {
-        'tail-wag': 'tail-wag-keyframes 1s infinite',
+        'tail-wag': 'tail-wag-keyframes 5s infinite',
       },
       keyframes: {
         'tail-wag-keyframes': {
-          '0%'  : { transform: 'rotate(0deg)' },
-          '50%' : { transform: 'rotate(45deg)' },
+          '0%,4%,8%,100%'  : { transform: 'rotate(0deg)' },
+          '2%,6%' : { transform: 'rotate(25deg)' },
         },
       },
     },

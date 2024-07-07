@@ -1,21 +1,21 @@
-import type { NextAuthConfig } from "next-auth";
+import type { NextAuthConfig, User } from "next-auth";
 
 export const authConfig = {
   debug: true,
-  session: { strategy: 'jwt' },
+  //session: { strategy: 'jwt' },
   pages: {
     signIn: '/login',
   },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      console.log('auth: ', auth);
-      console.log('nextUrl: ', nextUrl);
+    async authorized({ auth, request: { nextUrl } }) {
+      console.log('authorized(), auth: ', auth);
       const isLoggedIn = !!auth?.user;
-      const isOnRoot = nextUrl.pathname === '/';
+      const isOnRoot = nextUrl.pathname.startsWith('/')
       if (isOnRoot) {
-        if (isLoggedIn) return true;
-        return false;
+        console.log('isOnRoot, isLoggedIn: ', isLoggedIn);
+        return isLoggedIn;
       } else if (isLoggedIn) {
+        console.log('not isOnRoot, redirecting...');
         return Response.redirect(new URL('/', nextUrl));
       }
       return true;
