@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Button from '@/components/Button';
+import { ArrowLeftStartOnRectangleIcon } from '@heroicons/react/24/outline';
 
 import {
   getTasks,
@@ -15,7 +16,7 @@ const TaskList: React.FC = () => {
   const { data: tasks, mutate } = useSWR(
     '/actions/tasks', 
     () => getTasks().then(t => t),
-    { refreshInterval: 10_000 }
+    { refreshInterval: 30_000 }
   );
 
   return (
@@ -25,16 +26,18 @@ const TaskList: React.FC = () => {
       )}
       <Button
         onClick={async () => {
-          await addTask({
-            userId: 'tester', description: 'test task!' 
-          });
+          await addTask({ description: 'test task!' });
           mutate();
         }}
       >
         Test!
       </Button>
-      <Button onClick={async () => await logOut()}>
+      <Button 
+        className='flex flex-row'
+        onClick={async () => await logOut()}
+      >
         Logout
+        <ArrowLeftStartOnRectangleIcon className='ml-1 size-6'/>
       </Button>
     </div>
   );
