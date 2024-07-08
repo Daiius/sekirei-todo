@@ -28,8 +28,17 @@ const SekireiTail: React.FC<React.ComponentProps<'div'>> = (
   </div>
 );
 
-const SekireiIcon: React.FC = () => (
-  <div className='size-[200px] bg-gradient-radial from-slate-400 from-60% to-slate-200/10'>
+const SekireiIcon: React.FC<React.ComponentProps<'div'>> = ({
+  className,
+  ...props
+}) => (
+  <div
+    className={clsx(
+      'size-[200px] bg-gradient-radial from-slate-400 from-60% to-slate-200/10',
+      className
+    )}
+    {...props}
+  >
     <SekireiTail 
       className={clsx(
         'absolute animate-tail-wag',
