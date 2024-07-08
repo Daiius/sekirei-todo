@@ -6,15 +6,11 @@ import SekireiIcon from '@/components/SekireiIcon';
 export default function TasksPage() {
   return (
     <main className={clsx(
-      "flex min-h-screen flex-col items-center justify-between p-24"
+      'flex h-[calc(100vh-3rem)] flex-col items-center',
+      'p-5 md:p-24',
     )}>
-      <div className={clsx(
-        "z-10 w-full max-w-5xl items-center justify-between",
-        "font-mono text-sm lg:flex"
-      )}>
-        <SekireiIcon />
-        <TaskList />
-      </div>
+      <SekireiIcon />
+      <TaskList />
     </main>
   );
 }
