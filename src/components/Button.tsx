@@ -1,13 +1,12 @@
 import React from 'react';
 import clsx from 'clsx';
-import { Button as HuiButton } from '@headlessui/react';
 
-const Button: React.FC<React.ComponentProps<typeof HuiButton>> = ({
+const Button: React.FC<React.ComponentProps<'button'>> = ({
   className,
   children,
   ...props
 }) => (
-  <HuiButton
+  <button
     {...props}
     className={clsx(
       'border border-1 border-slate-500 rounded-md',
@@ -19,7 +18,7 @@ const Button: React.FC<React.ComponentProps<typeof HuiButton>> = ({
     )}
   >
     {children}
-  </HuiButton>
+  </button>
 );
 
 export default Button;

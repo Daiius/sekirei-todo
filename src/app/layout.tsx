@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import clsx from 'clsx';
 import { ThemeProvider } from 'next-themes';
+import Header from '@/components/Header';
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({
         <body className={clsx(
           'bg-slate-200 dark:bg-slate-800',
         )}>
+          <Header />
           {children}
         </body>
       </ThemeProvider>
