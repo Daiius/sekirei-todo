@@ -1,4 +1,4 @@
-import type { NextAuthConfig, User } from "next-auth";
+import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
   debug: true,
@@ -10,7 +10,7 @@ export const authConfig = {
     async authorized({ auth, request: { nextUrl } }) {
       console.log('authorized(), auth: ', auth);
       const isLoggedIn = !!auth?.user;
-      const isOnRoot = nextUrl.pathname.startsWith('/')
+      const isOnRoot = nextUrl.pathname === '/';
       if (isOnRoot) {
         console.log('isOnRoot, isLoggedIn: ', isLoggedIn);
         return isLoggedIn;
