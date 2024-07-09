@@ -5,15 +5,17 @@
  */
 
 
-import useSWR, { SWRResponse } from 'swr';
+import useSWR, { SWRConfiguration, SWRResponse } from 'swr';
 import { GetApiTypes } from '@/types/api';
 
 const useTypedSWR = <Url extends keyof GetApiTypes>(
-  url: keyof GetApiTypes
+  url: keyof GetApiTypes,
+  params: SWRConfiguration,
 ): SWRResponse<GetApiTypes[Url]> => 
   useSWR<GetApiTypes[typeof url]>(
     url as string,
-    (url: string) => fetch(url).then(response => response.json())
+    (url: string) => fetch(url).then(response => response.json()),
+    params,
   );
 
 export default useTypedSWR;

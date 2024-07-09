@@ -3,17 +3,13 @@
 import React from 'react';
 import Button from '@/components/Button';
 
-import {
-  getTasks,
-  addTask,
-} from '@/actions/tasksActions';
+import { addTask } from '@/actions/tasksActions';
 
-import useSWR from 'swr';
+import useTypedSWR from '@/hooks/useTypedSWR';
 
 const TaskList: React.FC = () => {
-  const { data: tasks, mutate } = useSWR(
-    '/actions/tasks', 
-    getTasks,
+  const { data: tasks, mutate } = useTypedSWR(
+    '/api/tasks', 
     { refreshInterval: 30_000 }
   );
 
