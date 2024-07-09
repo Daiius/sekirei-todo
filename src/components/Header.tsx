@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import { signOut } from '@/auth';
 import Button from '@/components/Button';
-import {ArrowRightStartOnRectangleIcon} from '@heroicons/react/24/outline';
+import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
 import { auth } from '@/auth';
 
 const Header: React.FC = async () => {
@@ -14,9 +14,7 @@ const Header: React.FC = async () => {
     )}>
       {session?.user &&
         <>
-          <div
-            className='ms-auto mr-4'
-          >
+          <div className='ms-auto mr-4'>
             Welcome: {session.user.name}
           </div>
           <form
