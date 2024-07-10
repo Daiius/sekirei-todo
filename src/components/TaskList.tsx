@@ -5,15 +5,15 @@ import Button from '@/components/Button';
 
 import { addTask } from '@/actions/tasksActions';
 
-import useTypedSWR from '@/hooks/useTypedSWR';
 import { trpc } from '@/trpc/client';
 
 const TaskList: React.FC = () => {
-  const { data: tasks, mutate } = useTypedSWR(
-    '/api/tasks', 
-    { refreshInterval: 30_000 }
-  );
+
+  const utils = trpc.useUtils();
   const { data } = trpc.hello.useQuery();
+  const { data: tasks } = trpc.task.getTasks.useQuery(
+    undefined, { staleTime: 10_000 }
+  );
 
   return (
     <div>
@@ -24,7 +24,7 @@ const TaskList: React.FC = () => {
       <Button
         onClick={async () => {
           await addTask({ description: 'test task!' });
-          await mutate();
+          utils.task.invalidate();
         }}
       >
         Test!
