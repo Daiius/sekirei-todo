@@ -34,6 +34,7 @@
     "react": "19.0.0-rc-3563387fe3-20240621",
     "react-dom": "19.0.0-rc-3563387fe3-20240621",
     "swr": "^2.2.5",
+    "use-debounce": "^10.0.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
