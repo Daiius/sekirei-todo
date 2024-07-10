@@ -9,7 +9,7 @@ export default function TasksPage() {
       'flex h-[calc(100vh-3rem)] flex-col items-center',
       'p-5 md:p-24',
     )}>
-      <SekireiIcon />
+      <SekireiIcon className='mb-4'/>
       <TaskList />
     </main>
   );

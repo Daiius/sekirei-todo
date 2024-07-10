@@ -1,26 +1,88 @@
 'use client'
 
 import React from 'react';
+import clsx from 'clsx';
+
 import Button from '@/components/Button';
+import Input from '@/components/Input';
+import { 
+  EllipsisVerticalIcon,
+  Bars3Icon,
+} from '@heroicons/react/24/outline';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { addTask } from '@/actions/tasksActions';
 
 import { trpc } from '@/trpc/client';
 
+import type { inferRouterOutputs } from '@trpc/server';
+import type { AppRouter } from '@/server';
+
+type ExtractElement<T> = T extends (infer U)[] ? U : never;
+
+type Task = ExtractElement<
+  inferRouterOutputs<AppRouter>['task']['getTasks']
+>;
+
+type TaskItemProps = {
+  task: Task;
+} & React.ComponentProps<'div'>;
+
+const TaskItem: React.FC<TaskItemProps> = ({ 
+  task,
+  ...props
+}) => {
+  const mutation = trpc.task.editTask.useMutation();
+  const debouncedOnChange = useDebouncedCallback(
+    async (value: string) => await mutation.mutateAsync({
+      taskId: task.id, newDescription: value
+    }),
+    500
+  );
+  return (
+    <div
+      className={clsx(
+        'flex flex-row items-center gap-3 w-64',
+        'p-2 border border-1 border-slate-300 rounded-md',
+        props.className
+      )}
+      {...props}
+    >
+      <Bars3Icon className='size-4 cursor-grab' />
+      <Input
+        type='text'
+        defaultValue={task.description}
+        onChange={e => debouncedOnChange(e.target.value)}
+      />
+      <Button className='ms-auto outline-none border-none'>
+        <EllipsisVerticalIcon className='size-4' />
+      </Button>
+    </div> 
+  );
+}
+
+
+/**
+ * ToDo Taskの一覧を取得します
+ *
+ * 1ユーザあたり（1画面当たり）高々100個程度のToDoを
+ * 管理するつもりなので、TaskListコンポーネントが
+ * 一括でTask[]を取得し、子コンポーネントに伝えます。
+ *
+ */
 const TaskList: React.FC = () => {
 
   const utils = trpc.useUtils();
-  const { data } = trpc.hello.useQuery();
   const { data: tasks } = trpc.task.getTasks.useQuery(
     undefined, { staleTime: 10_000 }
   );
 
   return (
-    <div>
-      {data?.msg && <div>{data.msg}</div>}
+    <div className='text-lg flex flex-col gap-3'>
       {tasks?.map(task =>
-        <div key={task.id}>{task.description}</div>
+        <TaskItem key={task.id} task={task} />
       )}
+      {/*
       <Button
         onClick={async () => {
           await addTask({ description: 'test task!' });
@@ -29,6 +91,7 @@ const TaskList: React.FC = () => {
       >
         Test!
       </Button>
+      */}
     </div>
   );
 };
