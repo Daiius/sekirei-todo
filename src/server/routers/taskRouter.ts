@@ -3,6 +3,7 @@ import { tasks } from '@/db/schema';
 import { db } from '@/db';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/auth';
+import { z } from 'zod';
 
 export const taskRouter = router({
   getTasks: procedure.query(async () => {
@@ -18,6 +19,26 @@ export const taskRouter = router({
           )
         );
     }
-  })
+  }),
+  editTask: procedure
+    .input(z.object({ 
+      taskId: z.number(), 
+      newDescription: z.string(),
+    }))
+    .mutation(async (opts) => {
+      const session = await auth();
+      if (session?.user?.name != null) {
+        const { input } = opts;
+        return await db
+          .update(tasks)
+          .set({ description: input.newDescription })
+          .where(
+            eq(
+              tasks.id,
+              input.taskId,
+            )
+          );
+      }
+    })
 });
 
