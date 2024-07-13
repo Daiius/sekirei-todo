@@ -1,3 +1,4 @@
 services:
   sekirei-todo-nextjs:
+    #command: bash -c "DEBUG=* pnpm next build && DEBUG=* pnpm next start"
     command: bash -c "pnpm next build && pnpm next start"

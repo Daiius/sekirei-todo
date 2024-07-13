@@ -32,7 +32,11 @@ const TaskItem: React.FC<TaskItemProps> = ({
   task,
   ...props
 }) => {
-  const mutation = trpc.task.editTask.useMutation();
+  const [error, setError] = React.useState<string|undefined>();
+  const mutation = trpc.task.editTask.useMutation({
+    onError: (error) => setError(error.message),
+    onSuccess: () => setError(undefined),
+  });
   const debouncedOnChange = useDebouncedCallback(
     async (value: string) => await mutation.mutateAsync({
       taskId: task.id, newDescription: value
@@ -49,11 +53,14 @@ const TaskItem: React.FC<TaskItemProps> = ({
       {...props}
     >
       <Bars3Icon className='size-4 cursor-grab' />
-      <Input
-        type='text'
-        defaultValue={task.description}
-        onChange={e => debouncedOnChange(e.target.value)}
-      />
+      <div className='flex flex-col'>
+        <Input
+          type='text'
+          defaultValue={task.description}
+          onChange={e => debouncedOnChange(e.target.value)}
+        />
+        {error != null && <span>{error}</span>}
+      </div>
       <Button className='ms-auto outline-none border-none'>
         <EllipsisVerticalIcon className='size-4' />
       </Button>
