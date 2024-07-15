@@ -1,12 +1,18 @@
+'use client'
+
 import React from 'react';
 import clsx from 'clsx';
-import { signOut } from '@/auth';
+
+import { signOut } from 'next-auth/react';
+
 import Button from '@/components/Button';
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
-import { auth } from '@/auth';
 
-const Header: React.FC = async () => {
-  const session = await auth();
+import { useSession } from 'next-auth/react';
+
+const Header: React.FC = () => {
+  const { data: session } = useSession();
+  console.log('session: ', session);
   return (
     <div className={clsx(
       'flex flex-row h-[3rem] px-2 items-center',
@@ -18,10 +24,7 @@ const Header: React.FC = async () => {
             Welcome: {session.user.name}
           </div>
           <form
-            action={async () => {
-              'use server'
-              await signOut();
-            }}
+            action={async () => await signOut()}
           >
             <Button 
               className='flex flex-row items-center'

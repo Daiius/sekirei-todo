@@ -1,22 +1,11 @@
 import LoginForm from "@/components/LoginForm"
-import { db } from '@/db'
-import { users } from '@/db/schema'
 
-import { getUser } from '@/auth';
+// 本当はユーザ名の一つでも出してみたいが、
+// それをするとDynamicになる
 
-//export const dynamic ='force-dynamic';
-
-export default async function Page() {
-  const test = await db.select().from(users);
-  const testAuth = await getUser('tester');
+export default function Page() {
   return (
-    <>
-      {test?.map(user => <div key={user.id}>{user.id}</div>)}
-      { testAuth != null && 
-        <div>{testAuth.username}, {testAuth.passWithSalt}</div>
-      }
-      <LoginForm />
-    </>
+    <LoginForm />
   )
 }
 
