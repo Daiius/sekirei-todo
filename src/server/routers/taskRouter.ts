@@ -11,10 +11,7 @@ export const taskRouter = router({
       .select()
       .from(tasks)
       .where(
-        eq(
-          tasks.userId,
-          opts.ctx.userId,
-        )
+        eq(tasks.userId, opts.ctx.userId)
       )
   ),
   editTask: protectedProcedure
@@ -27,11 +24,17 @@ export const taskRouter = router({
         .update(tasks)
         .set({ description: opts.input.newDescription })
         .where(
-          eq(
-            tasks.id,
-            opts.input.taskId,
-          )
+          eq(tasks.id, opts.input.taskId)
         )
-    )
+    ),
+  deleteTask: protectedProcedure
+    .input(z.object({ taskId: z.number() } ))
+    .mutation(async (opts) =>
+      await db
+        .delete(tasks)
+        .where(
+          eq(tasks.id, opts.input.taskId)
+        )
+    ),
 });
 

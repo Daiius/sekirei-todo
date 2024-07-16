@@ -8,6 +8,34 @@
 - Server Componentも使用し、Client ComponentとのCompositionを試みる
 - drizzle orm によるデータベースとのやり取りを行う
 
+## ログイン状態の取得をクライアントコンポーネントに
+Headerのログアウトボタン及びユーザ名表示がdynamicである必要があったため
+下の問題が起きた様なきがする。
+
+クライアントコンポーネントからもログイン、ログアウトできるので
+これを試してみる。
+
+## 想定外のserver dynamic rendering
+ユーザ情報をヘッダコンポーネントに表示するようにしていたが、
+これはdynamic server rendering (ビルド結果にfがつくやつ)になっている
+
+layout.tsxがdynamicになってしまっているせいか、
+その下のすべてのページがdynamicになっている...?
+
+これを解決したい
+
+## next build && next start 時の認証エラー
+middlewareからPoolConnectionを呼び出そうとすると
+PoolConnection is not a constructorというエラーが出る
+
+await mysql.createConnectionすると大丈夫なので、
+jestのテストをどうするか（このためにもPoolConnectionにしていた）は
+再考することにしたい
+
+## tRPCの導入
+事前の設定やコーディングがある程度必要だが、1時間もあれば導入できた。
+使い心地はストレスフリーでとてもよい
+
 ## テストデータの書き込み方法検討
 データベースが毎回まっさらからスタートだとテストしづらい気が...
 どこかのタイミングでパスワードなどハッシュ化したうえで記録したいが...

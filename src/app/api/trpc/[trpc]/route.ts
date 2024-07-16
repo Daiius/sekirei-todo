@@ -6,8 +6,22 @@ const handler = (req: Request) =>
     endpoint: '/api/trpc',
     req,
     router: appRouter,
-    createContext: () => ({}),
+    //createContext: () => ({}),
   });
 
 export { handler as GET, handler as POST };
+
+//import { NextApiRequest, NextApiResponse, createNextApiHandler } from '@trpc/server/adapters/next';
+//import { appRouter } from '@/server';
+//
+//const nextApiHandler = createNextApiHandler({
+//  router: appRouter,
+//});
+//
+//export default async function handler(
+//  req: NextApiRequest,
+//  res: NextApiResponse,
+//) {
+//  return nextApiHandler(req, res);
+//}
 

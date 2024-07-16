@@ -1,6 +1,6 @@
 'use server'
 
-import { signIn, signOut } from '../auth';
+import { signIn, signOut, auth } from '@/auth';
 import { AuthError } from 'next-auth';
 
 export async function authenticate(
@@ -27,3 +27,6 @@ export async function logOut() {
   await signOut();
 }
 
+export async function getSession() {
+  return await auth();
+}
