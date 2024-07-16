@@ -11,8 +11,8 @@ import mysql from 'mysql2/promise';
 // ので、createConnectionにしておく
 // (MiddlewareのRuntimeがEdge runtimeになるせい？)
 //
-//export const connection = mysql.createPool({
-export const connection = await mysql.createConnection({
+export const connection = mysql.createPool({
+//export const connection = await mysql.createConnection({
   host: process.env.DB_HOST!,
   user: process.env.MYSQL_USER!,
   password: process.env.MYSQL_PASSWORD!,

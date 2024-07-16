@@ -9,6 +9,5 @@ export const config = {
   // ルートURLに飛ばす様にmiddlewareを設定しているが、
   // /loginがmatcher対象外になるとそれができなくなります！
   matcher: ['/', '/login'],
-  //matcher:[ '/((?!api|_next/static|_next/image|favicon.ico).*)'] 
 };
 
