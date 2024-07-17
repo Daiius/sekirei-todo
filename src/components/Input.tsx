@@ -12,6 +12,7 @@ const Input: React.FC<React.ComponentProps<'input'>> = ({
       'border border-1 border-slate-300 dark:border-slate-800',
       'bg-transparent',
       'focus:outline focus:outline-1 focus:outline-slate-300',
+      'hover:outline hover:outline-1 hover:outline-slate-500',
       'rounded-md px-2 w-full',
     )}
     {...props}

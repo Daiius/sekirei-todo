@@ -5,9 +5,16 @@ import clsx from 'clsx';
 
 import { 
   EllipsisVerticalIcon,
-  Bars3Icon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useDebouncedCallback } from 'use-debounce';
+import {
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
+} from '@headlessui/react';
+
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 
@@ -40,7 +47,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
       )}
       {...props}
     >
-      <Bars3Icon className='size-4 cursor-grab' />
       <div className='flex flex-col'>
         <Input
           type='text'
@@ -48,9 +54,25 @@ const TaskItem: React.FC<TaskItemProps> = ({
           onChange={e => debouncedOnChange(e.target.value)}
         />
       </div>
-      <Button className='ms-auto outline-none border-none'>
-        <EllipsisVerticalIcon className='size-4' />
-      </Button>
+      <Menu>
+        <MenuButton className='ms-auto outline-none border-none'>
+          <EllipsisVerticalIcon className='size-4' />
+        </MenuButton>
+        <MenuItems
+          anchor='bottom end'
+          className={clsx(
+            'w-fit origin-top-left rounded-xl border border-white/5 bg-white/5',
+            'transition duration-100 ease-out p-2'
+          )} 
+        >
+          <MenuItem>
+            <Button className='border-none flex flex-row gap-3 items-center p-1'>
+              <TrashIcon className='size-4 stroke-red-500'/>
+              Delete task
+            </Button>
+          </MenuItem>
+        </MenuItems>
+      </Menu>
     </div> 
   );
 }

@@ -6,10 +6,12 @@ import { db } from '@/db';
 import { tasks } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
+type PartialBesides<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>; 
+
 export const getTasks = async () => db.select().from(tasks);
 
 export const addTask = async (
-  params: Omit<typeof tasks.$inferInsert, 'id'|'createdAt'|'userId'>,
+  params: Omit<typeof tasks.$inferInsert, 'id'|'createdAt'|'userId'>
 ) => {
   const session = await auth();
   if (session?.user?.name == null) {
@@ -21,7 +23,6 @@ export const addTask = async (
   return params;
 }
 
-type PartialBesides<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>; 
 
 export const mutateTask = async ({
   id,
