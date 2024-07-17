@@ -85,8 +85,6 @@ export async function hashWithSalt(
   text: string,
   salt: string,
 ): Promise<string> {
-  console.log('text: ', text);
-  console.log('salt: ', salt);
   return Buffer.from(
     await subtle.digest(
       'SHA-512',
