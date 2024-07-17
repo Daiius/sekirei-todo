@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import clsx from 'clsx';
 
 import { ThemeProvider } from 'next-themes';
-import TrpcProvider from '@/trpc/provider';
-import SessionProvider from '@/providers/SessionProvier';
+
+import Header from '@/components/Header';
 
 import "./globals.css";
 
@@ -19,17 +19,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <SessionProvider>
-        <ThemeProvider enableSystem attribute='class'>
-          <TrpcProvider>
-            <body className={clsx(
-              'bg-slate-200 dark:bg-slate-800',
-            )}>
-              {children}
-            </body>
-          </TrpcProvider>
-        </ThemeProvider>
-      </SessionProvider>
+      <ThemeProvider enableSystem attribute='class'>
+        <body className={clsx(
+          'bg-slate-200 dark:bg-slate-800',
+        )}>
+          <Header />
+          {children}
+        </body>
+      </ThemeProvider>
     </html>
   );
 }

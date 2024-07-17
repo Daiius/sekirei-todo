@@ -13,12 +13,7 @@ export async function getUser(username: string): Promise<{
   passWithSalt: string;
 } |undefined> {
   try {
-    console.log('getUser() called.')
-    console.log('Runtime: ', process.env.NEXT_RUNTIME);
-    console.log('Testing database acces...: ');
-    console.log('Users: ', await db.select().from(users));
     const user = await db.select().from(users).where(eq(users.id, username));
-    console.log('getUser(), user: ', user[0]);
     return { username: user[0].id, passWithSalt: user[0].passWithSalt };
   } catch (error) {
     console.error('Failed to fetch user:', error);
@@ -48,14 +43,10 @@ export const { handlers: { GET, POST}, signIn, signOut, auth } = NextAuth({
           password, process.env.HASH_SALT!
         );
         const user = await getUser(username);
-        console.log('user candidate: ', user);
         if (!user) return null;
         
         const passwordsMatch = (
           hashedPassword === user.passWithSalt
-        );
-        console.log(
-          'authorize(), passwordsMatched: ', passwordsMatch
         );
         if (passwordsMatch) return { name: username };
         return null;
