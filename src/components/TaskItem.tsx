@@ -3,10 +3,7 @@
 import React from 'react';
 import clsx from 'clsx';
 
-import { 
-  EllipsisVerticalIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline';
+import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { useDebouncedCallback } from 'use-debounce';
 import {
   Menu,
@@ -15,13 +12,13 @@ import {
   MenuItems,
 } from '@headlessui/react';
 
-import Button from '@/components/Button';
 import Input from '@/components/Input';
 
-import { mutateTask, type getTasks } from '@/actions/tasksActions';
+import { mutateTask } from '@/actions/tasksActions';
 
-type ExtractElement<T> = T extends (infer E)[] ? E : never;
-type Task = ExtractElement<Awaited<ReturnType<typeof getTasks>>>;
+import { Task } from '@/types';
+import DeleteTaskButton from './DeleteTaskButton';
+
 
 export type TaskItemProps = {
   task: Task;
@@ -38,6 +35,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     500
   );
 
+
   return (
     <div
       className={clsx(
@@ -47,29 +45,25 @@ const TaskItem: React.FC<TaskItemProps> = ({
       )}
       {...props}
     >
-      <div className='flex flex-col'>
-        <Input
-          type='text'
-          defaultValue={task.description}
-          onChange={e => debouncedOnChange(e.target.value)}
-        />
-      </div>
+      <Input
+        type='text'
+        defaultValue={task.description}
+        onChange={e => debouncedOnChange(e.target.value)}
+      />
       <Menu>
         <MenuButton className='ms-auto outline-none border-none'>
           <EllipsisVerticalIcon className='size-4' />
         </MenuButton>
         <MenuItems
-          anchor='bottom end'
+          unmount={false}
+          //anchor='bottom end'
           className={clsx(
             'w-fit origin-top-left rounded-xl border border-white/5 bg-white/5',
             'transition duration-100 ease-out p-2'
           )} 
         >
           <MenuItem>
-            <Button className='border-none flex flex-row gap-3 items-center p-1'>
-              <TrashIcon className='size-4 stroke-red-500'/>
-              Delete task
-            </Button>
+            <DeleteTaskButton taskId={task.id} />
           </MenuItem>
         </MenuItems>
       </Menu>
