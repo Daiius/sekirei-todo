@@ -2,6 +2,7 @@ import React from 'react';
 
 import { getTasks } from '@/actions/tasksActions';
 import TaskItem from './TaskItem';
+import TaskInput from './TaskInput';
 
 /**
  * ToDo Taskの一覧を取得します
@@ -18,6 +19,7 @@ const TaskList: React.FC = async () => {
       {tasks?.map(task =>
         <TaskItem key={task.id} task={task} />
       )}
+      <TaskInput />
     </div>
   );
 };

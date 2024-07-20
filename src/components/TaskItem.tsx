@@ -3,18 +3,22 @@
 import React from 'react';
 import clsx from 'clsx';
 
-import { 
-  EllipsisVerticalIcon,
-  Bars3Icon,
-} from '@heroicons/react/24/outline';
+import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { useDebouncedCallback } from 'use-debounce';
-import Button from '@/components/Button';
+import {
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
+} from '@headlessui/react';
+
 import Input from '@/components/Input';
 
-import { mutateTask, type getTasks } from '@/actions/tasksActions';
+import { mutateTask } from '@/actions/tasksActions';
 
-type ExtractElement<T> = T extends (infer E)[] ? E : never;
-type Task = ExtractElement<Awaited<ReturnType<typeof getTasks>>>;
+import { Task } from '@/types';
+import DeleteTaskButton from './DeleteTaskButton';
+
 
 export type TaskItemProps = {
   task: Task;
@@ -31,6 +35,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     500
   );
 
+
   return (
     <div
       className={clsx(
@@ -40,17 +45,28 @@ const TaskItem: React.FC<TaskItemProps> = ({
       )}
       {...props}
     >
-      <Bars3Icon className='size-4 cursor-grab' />
-      <div className='flex flex-col'>
-        <Input
-          type='text'
-          defaultValue={task.description}
-          onChange={e => debouncedOnChange(e.target.value)}
-        />
-      </div>
-      <Button className='ms-auto outline-none border-none'>
-        <EllipsisVerticalIcon className='size-4' />
-      </Button>
+      <Input
+        type='text'
+        defaultValue={task.description}
+        onChange={e => debouncedOnChange(e.target.value)}
+      />
+      <Menu>
+        <MenuButton className='ms-auto outline-none border-none'>
+          <EllipsisVerticalIcon className='size-4' />
+        </MenuButton>
+        <MenuItems
+          unmount={false}
+          //anchor='bottom end'
+          className={clsx(
+            'w-fit origin-top-left rounded-xl border border-white/5 bg-white/5',
+            'transition duration-100 ease-out p-2'
+          )} 
+        >
+          <MenuItem>
+            <DeleteTaskButton taskId={task.id} />
+          </MenuItem>
+        </MenuItems>
+      </Menu>
     </div> 
   );
 }

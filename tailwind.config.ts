@@ -21,6 +21,7 @@ const config: Config = {
       keyframes: {
         'tail-wag-keyframes': {
           '0%,4%,8%,100%'  : { transform: 'rotate(0deg)' },
+          '0.5%, 4.5%': { transform: 'rotate(-25deg)' },
           '2%,6%' : { transform: 'rotate(25deg)' },
         },
       },
