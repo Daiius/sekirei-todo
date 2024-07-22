@@ -1,8 +1,8 @@
 import React from 'react';
+import clsx from 'clsx';
 
 import { getTasks } from '@/actions/tasksActions';
 import TaskItem from './TaskItem';
-import TaskInput from './TaskInput';
 
 /**
  * ToDo Taskの一覧を取得します
@@ -12,14 +12,23 @@ import TaskInput from './TaskInput';
  * 一括でTask[]を取得し、子コンポーネントに伝えます。
  *
  */
-const TaskList: React.FC = async () => {
+const TaskList: React.FC<React.ComponentProps<'div'>> = async ({
+  className,
+  ...props
+}) => {
   const tasks = await getTasks();
   return (
-    <div className='text-lg flex flex-col gap-3'>
+    <div
+      {...props}
+      className={clsx(
+        'text-lg flex flex-col gap-3',
+        'overflow-y-auto',
+        className,
+      )}
+    >
       {tasks?.map(task =>
         <TaskItem key={task.id} task={task} />
       )}
-      <TaskInput />
     </div>
   );
 };
