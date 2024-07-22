@@ -8,6 +8,54 @@
 - Server Componentも使用し、Client ComponentとのCompositionを試みる
 - drizzle orm によるデータベースとのやり取りを行う
 
+## Next.jsらしいデータのやり取りを可視化したい
+```plantuml
+@startuml SPAのデータのやりとり
+title SPAのデータのやりとり
+Client -> "Web Server": WebアプリのURLにアクセス
+note over Client
+ロード画面を表示
+end note
+"Web Server" --> Client: HTML + JavaScriptを返す
+
+== 1往復目のHTTP通信完了 ==
+note over Client
+ユーザ毎のデータ以外の枠組みを表示
+end note
+
+Client -> "Web API Server": JavaScriptがWeb APIにアクセス
+note over Client
+ユーザ毎のデータのロード中...
+end note
+' database "データベース" as Database
+"Web API Server" -> Database: Web API サーバーがデータを要求
+Database --> "Web API Server": データベースがデータを返す
+"Web API Server" --> Client: JSON等の形式でデータを返す
+== 2往復目のHTTP通信完了 ==
+note over Client
+**SPA+ユーザ毎のデータが表示される**
+end note
+@enduml
+```
+
+```plantuml
+@startuml
+title Next.js指向のデータのやりとり
+
+Client -> Next.js : WebアプリのURLにアクセス
+Next.js -> Database : Next.jsがデータを要求
+note over Next.js
+ユーザ毎のデータのロード中...
+end note
+Next.js <-- Database: データベースからデータを返す
+Client <-- Next.js: ユーザ毎のデータに基づいた\nHTML+JavaScriptを返す
+== 1往復目のHTTP通信完了 ==
+note over Client
+**画面にデータが表示される!**
+end note
+@enduml
+```
+
 ## ログイン状態の取得をクライアントコンポーネントに
 Headerのログアウトボタン及びユーザ名表示がdynamicである必要があったため
 下の問題が起きた様なきがする。
