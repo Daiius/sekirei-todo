@@ -33,11 +33,11 @@ const SekireiIcon: React.FC<React.ComponentProps<'div'>> = ({
   ...props
 }) => (
   <div
+    {...props}
     className={clsx(
-      'size-[200px] bg-gradient-radial from-slate-400 from-60% to-slate-200/10',
+      'min-size-[200px] size-[200px] bg-gradient-radial from-slate-400 from-60% to-slate-200/10',
       className
     )}
-    {...props}
   >
     <SekireiTail 
       className={clsx(

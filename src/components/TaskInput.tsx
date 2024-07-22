@@ -28,7 +28,7 @@ const TaskInput: React.FC = () => {
       <form
         action={formAction}
         className={clsx(
-          'flex flex-row items-center gap-3 w-64',
+          'flex flex-row items-center gap-3',
           'p-2 border border-1 border-slate-300 rounded-md',
         )}
       >
@@ -38,6 +38,8 @@ const TaskInput: React.FC = () => {
           placeholder='New task...'
           required
           disabled={isPending}
+          autoFocus
+          autoComplete='off'
         />
       </form>
       {errorMessage != null &&

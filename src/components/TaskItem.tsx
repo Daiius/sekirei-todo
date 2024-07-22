@@ -30,7 +30,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   return (
     <div
       className={clsx(
-        'flex flex-row items-center gap-3 w-64',
+        'flex flex-row items-center gap-3',
         'p-2 border border-1 border-slate-300 rounded-md',
         props.className
       )}
