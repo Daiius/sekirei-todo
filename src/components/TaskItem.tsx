@@ -3,21 +3,13 @@
 import React from 'react';
 import clsx from 'clsx';
 
-import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { useDebouncedCallback } from 'use-debounce';
-import {
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuItems,
-} from '@headlessui/react';
-
-import Input from '@/components/Input';
 
 import { mutateTask } from '@/actions/tasksActions';
-
 import { Task } from '@/types';
-import DeleteTaskButton from './DeleteTaskButton';
+
+import Input from '@/components/Input';
+import TaskItemMenu from './TaskItemMenu';
 
 
 export type TaskItemProps = {
@@ -35,7 +27,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
     500
   );
 
-
   return (
     <div
       className={clsx(
@@ -50,23 +41,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
         defaultValue={task.description}
         onChange={e => debouncedOnChange(e.target.value)}
       />
-      <Menu>
-        <MenuButton className='ms-auto outline-none border-none'>
-          <EllipsisVerticalIcon className='size-4' />
-        </MenuButton>
-        <MenuItems
-          unmount={false}
-          //anchor='bottom end'
-          className={clsx(
-            'w-fit origin-top-left rounded-xl border border-white/5 bg-white/5',
-            'transition duration-100 ease-out p-2'
-          )} 
-        >
-          <MenuItem>
-            <DeleteTaskButton taskId={task.id} />
-          </MenuItem>
-        </MenuItems>
-      </Menu>
+      <TaskItemMenu taskId={task.id} />
     </div> 
   );
 }
