@@ -60,7 +60,6 @@ export const mutateTask = async ({
 }
 
 export const deleteTask = async (id: number) => {
-  console.log('deleteTask id: ', id);
   const userId = await getUserId();
   await db
     .delete(tasks)
