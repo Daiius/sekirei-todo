@@ -3,4 +3,5 @@ src/stories/
 .storybook/
 .drizzle/
 node_modules/
+database/drizzle.config.ts
 
