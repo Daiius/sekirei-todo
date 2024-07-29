@@ -3,15 +3,13 @@ services:
     build:
       dockerfile: ./Dockerfile.nextjs
     container_name: sekirei-todo-nextjs
-    ports:
-      - 3000:3000
     env_file:
       - .env
     volumes:
       - .:/app
-    depends_on:
-      sekirei-todo-database:
-        condition: service_healthy
+        #depends_on:
+        #  sekirei-todo-database:
+        #    condition: service_healthy
 
   sekirei-todo-database:
     build:
@@ -38,6 +36,14 @@ services:
       timeout: 20s
       retries: 3
       start_period: 5s
+    
+  sekirei-todo-webserver:
+    image: nginx
+    container_name: sekirei-todo-webserver
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
 
 networks:
   default:

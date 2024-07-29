@@ -15,7 +15,8 @@ import mysql from 'mysql2/promise';
 export const connection = 
   process.env.NEXT_BUILD
   ? {} as unknown as MySql2Client
-  : await mysql.createConnection({
+  : mysql.createPool({
+    //await mysql.createConnection({
       host: process.env.DB_HOST!,
       user: process.env.MYSQL_USER!,
       password: process.env.MYSQL_PASSWORD!,
