@@ -11,8 +11,10 @@ export default function TasksPage() {
       'p-5 md:p-24',
     )}>
       <SekireiIcon className='ml-auto mr-auto' />
-      <TaskList className='my-5 w-full md:w-[60%] ml-auto mr-auto'/>
-      <TaskInput />
+      <div className='flex flex-col ml-auto mr-auto w-full md:w-[60%]'>
+        <TaskList className='my-5'/>
+        <TaskInput />
+      </div>
     </main>
   );
 }
