@@ -2,5 +2,7 @@ services:
   sekirei-todo-nextjs:
     build:
       dockerfile: ./Dockerfile.nextjs.prod
+    container_name: sekirei-todo-nextjs-prod
     #command: bash -c "DEBUG=* pnpm next build && DEBUG=* pnpm next start"
-    #command: bash -c "pnpm next build && pnpm next start"
+    volumes: []
+    command: ["./node_modules/next/dist/bin/next", "start"]
