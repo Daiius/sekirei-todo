@@ -2,7 +2,7 @@ services:
   sekirei-todo-nextjs:
     build:
       dockerfile: ./Dockerfile.nextjs
-    container_name: sekirei-todo-nextjs
+    container_name: sekirei-todo-nextjs-dev
     env_file:
       - .env
     volumes:

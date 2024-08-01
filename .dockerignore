@@ -1,7 +1,7 @@
-.next/
+.next
 src/stories/
 .storybook/
 .drizzle/
-node_modules/
+node_modules
 database/drizzle.config.ts
 

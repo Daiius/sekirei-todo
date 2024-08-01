@@ -1,6 +1,8 @@
 #!/bin/bash
 
-docker compose -f docker-compose.yml -f docker-compose-prod.yml up --build
+docker compose -f docker-compose-prod.yml up #--build
 
-docker compose -f docker-compose.yml -f docker-compose-prod.yml down
+docker cp sekirei-todo-nextjs:/app/.next ./next-prod
+
+docker compose -f docker-compose-prod.yml down
 

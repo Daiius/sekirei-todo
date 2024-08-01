@@ -2,7 +2,50 @@ services:
   sekirei-todo-nextjs:
     build:
       dockerfile: ./Dockerfile.nextjs.prod
-    container_name: sekirei-todo-nextjs-prod
-    #command: bash -c "DEBUG=* pnpm next build && DEBUG=* pnpm next start"
-    volumes: []
-    command: ["./node_modules/next/dist/bin/next", "start"]
+    container_name: sekirei-todo-nextjs
+    env_file:
+      - .env
+        #volumes:
+        #- .:/app
+        #depends_on:
+        #  sekirei-todo-database:
+        #    condition: service_healthy
+
+  sekirei-todo-database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile.mysql
+      args:
+        MYSQL_USER: $MYSQL_USER
+        MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+        MYSQL_DATABASE: $MYSQL_DATABASE
+        MYSQL_PASSWORD: $MYSQL_PASSWORD
+    container_name: sekirei-todo-database
+    env_file:
+      - .env
+    environment:
+      TZ: 'Asia/Tokyo'
+    healthcheck:
+      # こちらはデータ初期化時にtemporal serverが立ち上がるのを
+      # きちんと待つためのコマンド
+      #test: ['CMD', 'mysql', '-u', '$MYSQL_USER', '-p$MYSQL_PASSWORD', '$MYSQL_DATABASE', '-e', 'select 1;']
+      # こちらはマルチステージビルドであらかじめ初期化を済ませた
+      # temporal serverが立ち上がらないとき用の簡易コマンド
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 20s
+      retries: 3
+      start_period: 5s
+    
+  sekirei-todo-webserver:
+    image: nginx
+    container_name: sekirei-todo-webserver
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+
+networks:
+  default:
+    name: sekirei-todo-network
+
