@@ -10,7 +10,7 @@ export const authConfig = {
   },
   callbacks: {
     async authorized({ auth, request: { nextUrl } }) {
-      console.log('nextUrl: ', nextUrl);
+      console.log('authorized()');
       const isLoggedIn = !!auth?.user;
       const isOnRoot = nextUrl.pathname === '/';
       if (isOnRoot) {

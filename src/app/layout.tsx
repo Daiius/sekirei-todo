@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import clsx from 'clsx';
 
+// 試しに一回ここでインポート
+// 2024/08/01 効果なし
+import { db } from '@/db';
+
 import { ThemeProvider } from 'next-themes';
 
 import Header from '@/components/Header';
