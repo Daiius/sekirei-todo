@@ -22,7 +22,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async authorized({ auth, request: { nextUrl }}) {
-      console.log('authorized: ', auth);
       const isLoggedIn = !!auth?.user;
       const isOnRoot = nextUrl.pathname.startsWith('/sekirei-todo');
       if (isOnRoot) {

@@ -10,10 +10,10 @@ type PartialBesides<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>;
 
 const getUserId = async (): Promise<string> => {
   const session = await auth();
-  if (session?.user?.name == null) {
+  if (session?.user?.id == null) {
     throw new Error('cannot get user information');
   }
-  return session?.user?.name;
+  return session?.user?.id;
 }
 
 export const getTasks = async () => {
