@@ -8,6 +8,13 @@
 [x] Server Componentも使用し、Client ComponentとのCompositionを試みる
 [x] drizzle orm によるデータベースとのやり取りを行う
 
+## 宣伝用のリンク+ Open Graph Imageの設定
+これまでルートURLを認証必須として各ユーザのタスクを表示していましたが、
+WebアプリのURLを貼って紹介する際にogimageの取得が難しいことに気付きました。
+サービスの説明自体も欲しいですし、ルートURLはSekirei Todo自体の説明として
+使ってみようと思います。
+
+
 ## 環境変数の切り替えをどうするか？
 `next build && next start`では`NODE_ENV=production`が定義されている
 
