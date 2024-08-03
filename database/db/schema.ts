@@ -7,20 +7,8 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core';
 
-
-export const users = mysqlTable('Users', {
-  id:
-    varchar('id', { length: 128 })
-    .notNull()
-    .primaryKey(),
-  passWithSalt:
-    varchar('passWithSalt', { length: 128 })
-    .notNull(),
-  createdAt:
-    timestamp('createdAt')
-    .defaultNow(),
-});
-
+// JWTにユーザ情報が大体入るので
+// 思い切ってUsersテーブルを削除
 
 export const projects = mysqlTable('Projects', {
   id: 
@@ -29,8 +17,7 @@ export const projects = mysqlTable('Projects', {
     .notNull(),
   userId: 
     varchar('userId', { length: 128 })
-    .notNull()
-    .references(() => users.id, {onDelete: 'cascade'}),
+    .notNull(),
   createdAt: 
     timestamp('createdAt')
     .defaultNow(),
@@ -46,8 +33,7 @@ export const tasks = mysqlTable('Tasks', {
     .notNull() .primaryKey(),
   userId: 
     varchar('userId', { length: 128 })
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade'}),
+    .notNull(),
   projectId: 
     varchar('projectId', { length: 256 })
     .references(() => projects.id),

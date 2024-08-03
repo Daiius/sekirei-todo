@@ -1,46 +1,41 @@
-import NextAuth, { User } from "next-auth";
-import Credentials from 'next-auth/providers/credentials';
-import { authConfig } from './auth.config';
-import { z } from 'zod';
-import { hashWithSalt } from '@/lib/crypto';
-
-import { getUser } from '@/actions/userActions';
-
-
-export const { handlers: { GET, POST}, signIn, signOut, auth } = NextAuth({
-  ...authConfig,
-  trustHost: true,
-  providers: [
-    Credentials({
-      credentials: {
-        username: {},
-        password: {},
-      },
-      async authorize(credentials): Promise<User|null> {
-        'use server'
-
-        console.log('authorize()');
-        const parsedCredentials = z
-          .object({ username: z.string(), password: z.string() })
-          .safeParse(credentials);
-
-        if (!parsedCredentials.success)
-          throw Error('Invalid credentials format.');
-
-        const { username, password } = parsedCredentials.data;
-        const hashedPassword = await hashWithSalt(
-          password, process.env.HASH_SALT!
-        );
-        const user = await getUser(username);
-        if (!user) return null;
-        
-        const passwordsMatch = (
-          hashedPassword === user.passWithSalt
-        );
-        if (passwordsMatch) return { name: username };
-        return null;
-      },
-    })
-  ],
+import NextAuth from "next-auth"
+import GitHub from "next-auth/providers/github"
+ 
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [GitHub],
+  callbacks: {
+    async jwt({ token, account, profile }) {
+      if (account && profile) {
+        token.sub = profile.id ?? '';
+        // emailは空になっている、取得するには
+        // GithubのOAuth設定をきちんと変更する必要がありそう
+        // (emailを教えてよいとは設定していないと思うので...)
+        token.email = profile.email;
+        token.username = profile.login;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.id = token.sub ?? '';
+      session.user.email = token.email ?? '';
+      //session.user.username = token.username ?? '';
+      return session;
+    },
+    async authorized({ auth, request: { nextUrl }}) {
+      const isLoggedIn = !!auth?.user;
+      const isOnRoot = nextUrl.pathname.startsWith('/sekirei-todo');
+      if (isOnRoot) {
+        // 未ログインならログインページへ
+        // ...trueならそのまま通して、
+        // falseならログインページを表示する感じ？
+        return isLoggedIn;
+      } else if (isLoggedIn) {
+        // ログイン済みなのにルートページにいない場合には
+        // リダイレクトする
+        return Response.redirect(new URL('/sekirei-todo', nextUrl));
+      }
+      return true;
+    },
+  }
 });
 
