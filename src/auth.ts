@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import GitHub from "next-auth/providers/github"
  
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // docker環境ではtrustHost: trueが必要らしいです
   trustHost: true,
   providers: [GitHub],
   callbacks: {
@@ -25,17 +26,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async authorized({ auth, request: { nextUrl }}) {
       const isLoggedIn = !!auth?.user;
       const isOnRoot = nextUrl.pathname === '/sekirei-todo';
-      if (isOnRoot) {
-        // 未ログインならログインページへ
-        // ...trueならそのまま通して、
-        // falseならログインページを表示する感じ？
-        return isLoggedIn;
-      } else if (isLoggedIn) {
-        // ログイン済みなのにルートページにいない場合には
-        // リダイレクトする
-        return Response.redirect(new URL('/sekirei-todo', nextUrl));
+      const isOnTasks = nextUrl.pathname === '/sekirei-todo/tasks';
+      // ログイン済みならtasksページにリダイレクト、
+      // そうでないなら、ルートページならそのまま
+      // ログインページならそのまま
+      // それ以外はログインページにリダイレクト
+      if (isLoggedIn) {
+        if (!isOnTasks) {
+          return Response.redirect(new URL('/sekirei-todo/tasks', nextUrl));
+        }
+        return true;
+      } else {
+        if (!isOnRoot) {
+          return Response.redirect(new URL('/sekirei-todo', nextUrl));
+        }
+        return true;
       }
-      return true;
     },
   }
 });
