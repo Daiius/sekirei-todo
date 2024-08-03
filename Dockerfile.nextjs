@@ -4,5 +4,5 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 
-CMD ["pnpm", "run", "dev"]
+CMD bash -c "NODE_ENV=development pnpm run dev"
 
