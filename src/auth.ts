@@ -24,7 +24,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async authorized({ auth, request: { nextUrl }}) {
       const isLoggedIn = !!auth?.user;
-      const isOnRoot = nextUrl.pathname.startsWith('/sekirei-todo');
+      const isOnRoot = nextUrl.pathname === '/sekirei-todo';
       if (isOnRoot) {
         // 未ログインならログインページへ
         // ...trueならそのまま通して、
