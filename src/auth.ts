@@ -25,6 +25,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async authorized({ auth, request: { nextUrl }}) {
       const isLoggedIn = !!auth?.user;
+      // basePathの扱いが難しい、
+      // まさかと思うが本番/開発環境で扱いが違っていたりしないか？
       const isOnRoot = nextUrl.pathname === '/sekirei-todo';
       const isOnTasks = nextUrl.pathname === '/sekirei-todo/tasks';
       // ログイン済みならtasksページにリダイレクト、
@@ -38,6 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return true;
       } else {
         if (!isOnRoot) {
+          console.log('is not on root, redirecting...', nextUrl);
           return Response.redirect(new URL('/sekirei-todo', nextUrl));
         }
         return true;
