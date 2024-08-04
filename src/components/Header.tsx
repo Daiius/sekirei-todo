@@ -18,6 +18,7 @@ const Header: React.FC = async () => {
           action={async () => {
             'use server'
             await signOut();
+            window.location.reload();
           }}
           className='ms-auto flex flex-row items-center'
         >
