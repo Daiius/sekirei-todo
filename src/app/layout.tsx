@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <ThemeProvider enableSystem attribute='class'>
         <body className={clsx(
-          'bg-slate-200 dark:bg-slate-800',
+          'bg-slate-200 dark:bg-slate-800 flex flex-col',
         )}>
           <Header />
           {children}

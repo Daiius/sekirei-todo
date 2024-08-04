@@ -2,6 +2,8 @@ import NextAuth from "next-auth"
 import GitHub from "next-auth/providers/github"
  
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // docker環境ではtrustHost: trueが必要らしいです
+  trustHost: true,
   providers: [GitHub],
   callbacks: {
     async jwt({ token, account, profile }) {
@@ -23,18 +25,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async authorized({ auth, request: { nextUrl }}) {
       const isLoggedIn = !!auth?.user;
-      const isOnRoot = nextUrl.pathname.startsWith('/sekirei-todo');
-      if (isOnRoot) {
-        // 未ログインならログインページへ
-        // ...trueならそのまま通して、
-        // falseならログインページを表示する感じ？
-        return isLoggedIn;
-      } else if (isLoggedIn) {
-        // ログイン済みなのにルートページにいない場合には
-        // リダイレクトする
-        return Response.redirect(new URL('/sekirei-todo', nextUrl));
+      // basePathの扱いが難しい、
+      // まさかと思うが本番/開発環境で扱いが違っていたりしないか？
+      const isOnRoot = nextUrl.pathname === '/sekirei-todo';
+      const isOnTasks = nextUrl.pathname === '/sekirei-todo/tasks';
+      // ログイン済みならtasksページにリダイレクト、
+      // そうでないなら、ルートページならそのまま
+      // ログインページならそのまま
+      // それ以外はログインページにリダイレクト
+      if (isLoggedIn) {
+        if (!isOnTasks) {
+          return Response.redirect(new URL('/sekirei-todo/tasks', nextUrl));
+        }
+        return true;
+      } else {
+        if (!isOnRoot) {
+          console.log('is not on root, redirecting...', nextUrl);
+          return Response.redirect(new URL('/sekirei-todo', nextUrl));
+        }
+        return true;
       }
-      return true;
     },
   }
 });

@@ -8,6 +8,25 @@
 [x] Server Componentも使用し、Client ComponentとのCompositionを試みる
 [x] drizzle orm によるデータベースとのやり取りを行う
 
+## 宣伝用のリンク+ Open Graph Imageの設定
+これまでルートURLを認証必須として各ユーザのタスクを表示していましたが、
+WebアプリのURLを貼って紹介する際にogimageの取得が難しいことに気付きました。
+サービスの説明自体も欲しいですし、ルートURLはSekirei Todo自体の説明として
+使ってみようと思います。
+
+
+## 環境変数の切り替えをどうするか？
+`next build && next start`では`NODE_ENV=production`が定義されている
+
+`next dev`では何もない
+
+.env.* はNext.js環境に自動でロードされて、
+\*部分には`NODE_ENV`が入るらしい、
+
+`NODE_ENV=development`とすれば、.env.developmentが、
+`NODE_ENV=production`とすれば、.env.productionが読み込まれるそうなので
+これを活用してみたい
+
 ## Next.jsらしいデータのやり取りを可視化したい
 ```plantuml
 @startuml SPAのデータのやりとり
