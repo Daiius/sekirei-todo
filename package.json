@@ -6,12 +6,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prod-local": "next build && next start",
     "start": "next start",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "generate": "drizzle-kit generate",
-    "push": "drizzle-kit push",
     "database": "pnpm -F \"database\""
   },
   "dependencies": {

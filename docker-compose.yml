@@ -9,9 +9,6 @@ services:
       - .:/app
     tmpfs:
       - /app/.next
-        #depends_on:
-        #  sekirei-todo-database:
-        #    condition: service_healthy
 
   database:
     build:
@@ -29,10 +26,10 @@ services:
     healthcheck:
       # こちらはデータ初期化時にtemporal serverが立ち上がるのを
       # きちんと待つためのコマンド
-      #test: ['CMD', 'mysql', '-u', '$MYSQL_USER', '-p$MYSQL_PASSWORD', '$MYSQL_DATABASE', '-e', 'select 1;']
+      test: ['CMD', 'mysql', '-u', '$MYSQL_USER', '-p$MYSQL_PASSWORD', '$MYSQL_DATABASE', '-e', 'select 1;']
       # こちらはマルチステージビルドであらかじめ初期化を済ませた
       # temporal serverが立ち上がらないとき用の簡易コマンド
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      # test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
       interval: 5s
       timeout: 20s
       retries: 3
@@ -64,7 +61,7 @@ services:
       database:
         condition: service_healthy
     
-  sekirei-todo-webserver:
+  webserver:
     image: nginx
     container_name: sekirei-todo-webserver
     ports:
