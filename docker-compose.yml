@@ -7,24 +7,25 @@ services:
       - .env
     volumes:
       - .:/app
+    tmpfs:
+      - /app/.next
         #depends_on:
         #  sekirei-todo-database:
         #    condition: service_healthy
 
-  sekirei-todo-database:
+  database:
     build:
-      context: ./database
       dockerfile: Dockerfile.mysql
-      args:
-        MYSQL_USER: $MYSQL_USER
-        MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
-        MYSQL_DATABASE: $MYSQL_DATABASE
-        MYSQL_PASSWORD: $MYSQL_PASSWORD
     container_name: sekirei-todo-database
     env_file:
       - .env
+    tmpfs:
+      - /var/lib/mysql
     environment:
       TZ: 'Asia/Tokyo'
+      LANG: 'ja_JP.UTF-8'
+    cap_add:
+      - SYS_NICE
     healthcheck:
       # こちらはデータ初期化時にtemporal serverが立ち上がるのを
       # きちんと待つためのコマンド
@@ -36,6 +37,32 @@ services:
       timeout: 20s
       retries: 3
       start_period: 5s
+  
+  database-preparation:
+    image: node:20
+    container_name: sekirei-todo-database-preparation
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: 'development'
+    volumes:
+      - ./:/app:ro
+    working_dir: /app
+    command: >
+      bash -c '
+        npm install -g pnpm \
+        && pnpm drizzle-kit push \
+          --dialect=mysql \
+          --schema=./src/db/schema.ts \
+          --host=$DB_HOST \
+          --user=$MYSQL_USER \
+          --password=$MYSQL_PASSWORD \
+          --database=$MYSQL_DATABASE; \
+        pnpx tsx addTestData.ts
+      '
+    depends_on:
+      database:
+        condition: service_healthy
     
   sekirei-todo-webserver:
     image: nginx

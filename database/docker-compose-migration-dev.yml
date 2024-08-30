@@ -1,4 +1,0 @@
-services:
-  sekirei-todo-migration:
-    command: /bin/bash -c "pnpm drizzle-kit push && pnpx tsx addTestData.ts"
-
