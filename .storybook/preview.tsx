@@ -14,6 +14,18 @@ const preview: Preview = {
       },
     },
   },
+
+  //  globalTypes: {
+  //    theme: {
+  //      name: 'Theme',
+  //      defaultValue: 'light',
+  //      toolbar: {
+  //        icon: 'circlehollow',
+  //        items: ['light', 'dark'],
+  //        showName: true,
+  //      }
+  //    }
+  //  }
   decorators: [
     (Story, { globals }) => (
       <ThemeProvider attribute='class'>
@@ -29,17 +41,8 @@ const preview: Preview = {
       </ThemeProvider>
     ),
   ],
-//  globalTypes: {
-//    theme: {
-//      name: 'Theme',
-//      defaultValue: 'light',
-//      toolbar: {
-//        icon: 'circlehollow',
-//        items: ['light', 'dark'],
-//        showName: true,
-//      }
-//    }
-//  }
+
+  tags: ["autodocs"]
 };
 
 export default preview;
