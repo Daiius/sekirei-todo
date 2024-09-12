@@ -8,8 +8,7 @@ import mysql from 'mysql2/promise';
 // Next.js + auth.jsのmiddleware, authenticate関数などを使うと
 // なぜかnext build && next start時だけ
 // PoolConnection is not a constructorエラーになってしまう...
-// ので、createConnectionにしておく
-// (MiddlewareのRuntimeがEdge runtimeになるせい？)
+// -> Next.jsのRC版なら問題なさそう
 //
 export const connection = mysql.createPool({
       host: process.env.DB_HOST!,
