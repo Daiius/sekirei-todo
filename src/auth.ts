@@ -24,6 +24,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async authorized({ auth, request: { nextUrl }}) {
+      console.log('authorized, nextUrl: ', nextUrl);
       const isLoggedIn = !!auth?.user;
       // basePathの扱いが難しい、
       // まさかと思うが本番/開発環境で扱いが違っていたりしないか？

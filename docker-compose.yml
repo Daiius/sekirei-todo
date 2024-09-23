@@ -40,6 +40,7 @@ services:
     container_name: sekirei-todo-database-preparation
     env_file:
       - .env
+      - .env.development
     environment:
       NODE_ENV: 'development'
     volumes:
