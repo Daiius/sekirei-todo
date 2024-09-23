@@ -30,8 +30,8 @@ RUN pnpm install --frozen-lockfile --prod
 # Deploy layer
 #
 # イメージサイズやセキュリティの視点からおすすめのイメージとのこと
-#FROM gcr.io/distroless/nodejs20-debian12
-FROM gcr.io/distroless/nodejs20:debug
+FROM gcr.io/distroless/nodejs20-debian12
+#FROM gcr.io/distroless/nodejs20:debug
 
 WORKDIR /app
 ENV NODE_ENV=production
