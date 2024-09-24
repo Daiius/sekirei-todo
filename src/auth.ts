@@ -5,6 +5,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // docker環境ではtrustHost: trueが必要らしいです
   trustHost: true,
   providers: [GitHub],
+  basePath: '/sekirei-todo/api/auth',
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
