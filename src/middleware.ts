@@ -1,4 +1,20 @@
-export { auth as middleware } from '@/auth';
+import { auth } from '@/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { NextApiRequest, NextApiResponse } from 'next';
+
+export async function middleware(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  console.log('middleware, req: ', req);
+  return auth(req, res);
+}
+
+//export async function middleware(
+//  req: NextRequest
+//): Promise<Response> {
+//  return NextResponse.next();
+//}
 
 export const config = {
   // ここはリバースプロキシ下なので、/sekirei-todo は必要無さそう

@@ -5,6 +5,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // docker環境ではtrustHost: trueが必要らしいです
   trustHost: true,
   providers: [GitHub],
+  basePath: '/sekirei-todo/api/auth',
+  debug: process.env.NODE_ENV !== 'production',
+  pages: {
+    signIn: '/sekirei-todo',
+    signOut: '/sekirei-todo',
+  },
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
@@ -28,8 +34,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isLoggedIn = !!auth?.user;
       // basePathの扱いが難しい、
       // まさかと思うが本番/開発環境で扱いが違っていたりしないか？
-      const isOnRoot = nextUrl.pathname === '/sekirei-todo';
-      const isOnTasks = nextUrl.pathname === '/sekirei-todo/tasks';
+      const isOnRoot = nextUrl.pathname === '/';
+      const isOnTasks = nextUrl.pathname === '/tasks';
       // ログイン済みならtasksページにリダイレクト、
       // そうでないなら、ルートページならそのまま
       // ログインページならそのまま
