@@ -21,6 +21,7 @@ const Button: React.FC<React.ComponentProps<typeof HeadlessButton>> = ({
       'focus:outline focus:outline-1 focus:outline-slate-400 dark:focus:outline-slate-200',
       className,
     )}
+    type='button'
   >
     {children}
   </HeadlessButton>

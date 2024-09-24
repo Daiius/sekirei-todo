@@ -1,29 +1,15 @@
 'use server'
 
-import { signIn, signOut } from '@/auth';
-import { AuthError } from 'next-auth';
+import { 
+  signIn as authSignIn, 
+  signOut as authSignOut
+} from '@/auth';
 
-export async function authenticate(
-  prevState: string | undefined,
-  formData: FormData
-) {
-  console.log('authenticate()');
-  try {
-    await signIn('credentials', formData);
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return 'Invalid credentials.';
-        default:
-          return 'Something went wrong.';
-      }
-    }
-    throw error;
-  }
-}
+export const signIn = async (
+  params?: Parameters<typeof authSignIn>[0],
+) => await authSignIn(params);
 
-export async function logOut() {
-  await signOut();
-}
+export const signOut = async (
+  params?: Parameters<typeof authSignOut>[0],
+) => await authSignOut(params);
 
