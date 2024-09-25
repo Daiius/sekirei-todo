@@ -1,12 +1,9 @@
 import React from 'react';
 import clsx from 'clsx';
 
-import Link from 'next/link';
-import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/24/outline';
 
 import SekireiIcon from '@/components/SekireiIcon';
-import Button from '@/components/Button';
-import { signIn } from '@/auth';
+import SignInButton from '@/components/SignInButton';
 
 export default function Page() {
   return (
@@ -19,23 +16,7 @@ export default function Page() {
         <span>Sekirei Todo is a simple to-do list with a cute tail-swagger.</span>
         <span>You can login to manage tasks by your Github account!</span>
       </div>
-      <form
-        action={async () => {
-          'use server'
-          await signIn('github', { 
-            redirectTo: '/sekirei-todo/tasks', redirect: true 
-          });
-        }}
-        className='self-center'
-      >
-        <Button 
-          className='mt-2 p-2 flex flex-row'
-          type='submit'
-        >
-          Sign-in by Github
-          <ArrowLeftEndOnRectangleIcon className='size-6 ml-2'/>
-        </Button>
-      </form>
+      <SignInButton />
     </div>
   );
 }

@@ -1,10 +1,8 @@
 import React from 'react';
 import clsx from 'clsx';
 
-import { signOut, auth } from '@/auth';
-
-import Button from '@/components/Button';
-import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
+import { auth } from '@/auth';
+import SignOutButton from './SignOutButton';
 
 const Header: React.FC = async () => {
   const session = await auth();
@@ -14,25 +12,12 @@ const Header: React.FC = async () => {
       'dark:bg-slate-900',
     )}>
       {session?.user &&
-        <form
-          action={async () => {
-            'use server'
-            await signOut();
-            window.location.reload();
-          }}
-          className='ms-auto flex flex-row items-center'
-        >
+        <>
           <div className='ms-auto mr-4'>
             Welcome: {session.user.name}
           </div>
-          <Button 
-            className='flex flex-row items-center'
-            type='submit'
-          >
-            Logout
-            <ArrowRightStartOnRectangleIcon className='size-6'/>
-          </Button>
-        </form>
+          <SignOutButton />
+        </>
       }
     </div>
   );
