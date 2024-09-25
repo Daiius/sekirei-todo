@@ -1,9 +1,12 @@
 'use client'
 
 import React from 'react';
+import clsx from 'clsx';
+
+import { useRouter } from 'next/navigation';
 
 import { signOut } from '@/actions/authenticate';
-import { useRouter } from 'next/navigation';
+
 
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
 import Button from '@/components/Button';
@@ -17,18 +20,18 @@ const SignOutButton: React.FC<
   const router = useRouter();
   return (
     <Button 
-      className='flex flex-row items-center'
-      onClick={async () =>{
+      className={clsx('flex flex-row items-center', className)}
+      onClick={async () => {
         await signOut();
         router.refresh();
       }}
       {...props}
     >
-      サインアウト
+      SignOut
       <ArrowRightStartOnRectangleIcon className='size-6'/>
     </Button>
   );
-};
+}
 
 export default SignOutButton;
 

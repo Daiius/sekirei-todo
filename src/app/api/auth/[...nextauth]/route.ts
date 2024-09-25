@@ -1,9 +1,10 @@
 import { handlers } from "@/auth" // Referring to the auth.ts we just created
-import { NextRequest } from 'next/server';
 //export const { GET, POST } = handlers
 //export const runtime = "edge" // optional
 
-const basePath = '/sekirei-todo';
+import { NextRequest } from 'next/server';
+
+const basePath: string = '/sekirei-todo';
 
 const toForwardedRequest = (req: NextRequest): NextRequest => {
   const forwardedHost = req.headers.get('x-forwarded-host');

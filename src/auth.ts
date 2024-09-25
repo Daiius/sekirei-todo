@@ -7,10 +7,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [GitHub],
   basePath: '/sekirei-todo/api/auth',
   debug: process.env.NODE_ENV !== 'production',
-  pages: {
-    signIn: '/sekirei-todo',
-    signOut: '/sekirei-todo',
-  },
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
@@ -32,10 +28,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async authorized({ auth, request: { nextUrl }}) {
       console.log('authorized, nextUrl: ', nextUrl);
       const isLoggedIn = !!auth?.user;
-      // basePathの扱いが難しい、
-      // まさかと思うが本番/開発環境で扱いが違っていたりしないか？
-      const isOnRoot = nextUrl.pathname === '/';
-      const isOnTasks = nextUrl.pathname === '/tasks';
+      // AUTH_URLの有無で/sekirei-todoの有無が変わる...注意したい
+      const isOnRoot = nextUrl.pathname === '/sekirei-todo';
+      const isOnTasks = nextUrl.pathname === '/sekirei-todo/tasks';
+
       // ログイン済みならtasksページにリダイレクト、
       // そうでないなら、ルートページならそのまま
       // ログインページならそのまま

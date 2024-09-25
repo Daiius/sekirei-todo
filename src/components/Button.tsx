@@ -11,7 +11,7 @@ const Button: React.FC<React.ComponentProps<typeof HeadlessButton>> = ({
   ...props
 }) => (
   <HeadlessButton
-    {...props}
+    type='button'
     className={clsx(
       'border border-1 border-slate-500 rounded-md',
       'dark:border-slate-300',
@@ -21,7 +21,7 @@ const Button: React.FC<React.ComponentProps<typeof HeadlessButton>> = ({
       'focus:outline focus:outline-1 focus:outline-slate-400 dark:focus:outline-slate-200',
       className,
     )}
-    type='button'
+    {...props}
   >
     {children}
   </HeadlessButton>

@@ -25,14 +25,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <ThemeProvider enableSystem attribute='class'>
-        <body className={clsx(
-          'bg-slate-200 dark:bg-slate-800 flex flex-col',
-        )}>
+      <body className={clsx(
+        'bg-slate-200 dark:bg-slate-800 flex flex-col',
+      )}>
+        <ThemeProvider defaultTheme='light' attribute='class'>
           <Header />
           {children}
-        </body>
-      </ThemeProvider>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

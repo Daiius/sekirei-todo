@@ -1,15 +1,19 @@
 'use server'
 
-import { 
-  signIn as authSignIn, 
-  signOut as authSignOut
-} from '@/auth';
+import { signIn as authSignIn, signOut as authSignOut} from '@/auth';
 
-export const signIn = async (
-  params?: Parameters<typeof authSignIn>[0],
-) => await authSignIn(params);
+/** auth.js signIn 関数をserver actionとするためのwrapper関数 */
+export const signIn = (
+  ...params: Parameters<typeof authSignIn>
+): ReturnType<typeof authSignIn> => authSignIn(...params);
 
-export const signOut = async (
-  params?: Parameters<typeof authSignOut>[0],
-) => await authSignOut(params);
+/** auth.js signOut 関数をserver actionとするためのwrapper関数 */
+export const signOut = (
+  ...params: Parameters<typeof authSignOut>
+): ReturnType<typeof authSignOut> => authSignOut(...params);
 
+/*
+ * export { signIn, signOut } from '@/auth' は、
+ * 'use server'が書かれた.tsファイルからはasync functionsしか
+ * エクスポートできないというエラーになる...
+ */

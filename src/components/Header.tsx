@@ -4,7 +4,6 @@ import clsx from 'clsx';
 import { auth } from '@/auth';
 import SignOutButton from '@/components/SignOutButton';
 
-
 const Header: React.FC = async () => {
   const session = await auth();
   return (
@@ -13,12 +12,12 @@ const Header: React.FC = async () => {
       'dark:bg-slate-900',
     )}>
       {session?.user &&
-        <div>
+        <>
           <div className='ms-auto mr-4'>
             Welcome: {session.user.name}
           </div>
           <SignOutButton />
-        </div>
+        </>
       }
     </div>
   );
