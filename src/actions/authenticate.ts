@@ -1,29 +1,20 @@
 'use server'
 
-import { signIn, signOut } from '@/auth';
-import { AuthError } from 'next-auth';
+import { signIn as authSignIn, signOut as authSignOut} from '@/auth';
 
-export async function authenticate(
-  prevState: string | undefined,
-  formData: FormData
-) {
-  console.log('authenticate()');
-  try {
-    await signIn('credentials', formData);
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return 'Invalid credentials.';
-        default:
-          return 'Something went wrong.';
-      }
-    }
-    throw error;
-  }
-}
+/** auth.js signIn 関数をserver actionとするためのwrapper関数 */
+export const signIn = (
+  ...params: Parameters<typeof authSignIn>
+): ReturnType<typeof authSignIn> => authSignIn(...params);
 
-export async function logOut() {
-  await signOut();
-}
+/** auth.js signOut 関数をserver actionとするためのwrapper関数 */
+export const signOut = (
+  ...params: Parameters<typeof authSignOut>
+): ReturnType<typeof authSignOut> => authSignOut(...params);
+
+/*
+ * export { signIn, signOut } from '@/auth' は、
+ * 'use server'が書かれた.tsファイルからはasync functionsしか
+ * エクスポートできないというエラーになる...
+ */
 
