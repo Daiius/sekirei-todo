@@ -6,6 +6,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   providers: [GitHub],
   basePath: '/sekirei-todo/api/auth',
+  debug: process.env.NODE_ENV !== 'production',
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
