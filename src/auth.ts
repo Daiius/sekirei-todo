@@ -26,8 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async authorized({ auth, request: { nextUrl }}) {
       const isLoggedIn = !!auth?.user;
-      // basePathの扱いが難しい、
-      // まさかと思うが本番/開発環境で扱いが違っていたりしないか？
+      // AUTH_URLの有無で/sekirei-todoの有無が変わる...注意したい
       const isOnRoot = nextUrl.pathname === '/sekirei-todo';
       const isOnTasks = nextUrl.pathname === '/sekirei-todo/tasks';
       // ログイン済みならtasksページにリダイレクト、
