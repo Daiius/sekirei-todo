@@ -26,10 +26,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async authorized({ auth, request: { nextUrl }}) {
+      console.log('authorized, nextUrl: ', nextUrl);
       const isLoggedIn = !!auth?.user;
       // AUTH_URLの有無で/sekirei-todoの有無が変わる...注意したい
       const isOnRoot = nextUrl.pathname === '/sekirei-todo';
       const isOnTasks = nextUrl.pathname === '/sekirei-todo/tasks';
+
       // ログイン済みならtasksページにリダイレクト、
       // そうでないなら、ルートページならそのまま
       // ログインページならそのまま

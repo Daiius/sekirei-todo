@@ -16,7 +16,7 @@ export default function Page() {
         <span>Sekirei Todo is a simple to-do list with a cute tail-swagger.</span>
         <span>You can login to manage tasks by your Github account!</span>
       </div>
-      <SignInButton />
+      <SignInButton className='self-center' />
     </div>
   );
 }

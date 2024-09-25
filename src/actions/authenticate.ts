@@ -17,4 +17,3 @@ export const signOut = (
  * 'use server'が書かれた.tsファイルからはasync functionsしか
  * エクスポートできないというエラーになる...
  */
-

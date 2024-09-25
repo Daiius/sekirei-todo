@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 
 import { auth } from '@/auth';
-import SignOutButton from './SignOutButton';
+import SignOutButton from '@/components/SignOutButton';
 
 const Header: React.FC = async () => {
   const session = await auth();

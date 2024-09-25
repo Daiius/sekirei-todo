@@ -28,4 +28,3 @@ export const GET: (req: NextRequest) => Promise<Response> =
 
 export const POST: (req: NextRequest) => Promise<Response> = 
   (req) => handlers.POST(toForwardedRequest(req));
-
