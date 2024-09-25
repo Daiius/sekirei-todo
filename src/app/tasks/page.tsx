@@ -7,8 +7,9 @@ import TaskInput from '@/components/TaskInput';
 export default function TasksPage() {
   return (
     <main className={clsx(
-      'w-full h-[calc(100vh-3rem)] flex flex-col',
+      'w-full flex-1 flex flex-col',
       'p-5 md:p-24',
+      'overflow-y-auto',
     )}>
       <SekireiIcon className='ml-auto mr-auto' />
       <div className='flex flex-col ml-auto mr-auto w-full md:w-[60%]'>
