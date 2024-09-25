@@ -19,12 +19,11 @@ const TaskList: React.FC<React.ComponentProps<'div'>> = async ({
   const tasks = await getTasks();
   return (
     <div
-      {...props}
       className={clsx(
         'text-lg flex flex-col gap-3',
-        'overflow-y-auto',
         className,
       )}
+      {...props}
     >
       {tasks?.map(task =>
         <TaskItem key={task.id} task={task} />

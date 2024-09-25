@@ -8,7 +8,7 @@ const Header: React.FC = async () => {
   const session = await auth();
   return (
     <div className={clsx(
-      'flex flex-row h-[3rem] px-2 items-center',
+      'flex flex-row h-12 px-2 items-center',
       'dark:bg-slate-900',
     )}>
       {session?.user &&
