@@ -12,6 +12,7 @@ const SekireiBody: React.FC<React.ComponentProps<'div'>> = (
       src='/sekirei-todo/sekirei_body_fill.svg'
       //src='/sekirei_body_fill.png'
       alt='sekirei icon body'
+      priority
     />
   </div>
 );
@@ -24,6 +25,7 @@ const SekireiTail: React.FC<React.ComponentProps<'div'>> = (
       width={200} height={200}
       src='/sekirei-todo/sekirei_tail_fill.svg'
       alt='sekirei icon tail'
+      priority
     />
   </div>
 );
