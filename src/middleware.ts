@@ -23,6 +23,6 @@ export const config = {
   //
   // 変更した場合にはnext.jsコンテナを再起動する必要がありそう
   // (キャッシュされているみたい)
-  matcher: ['/', '/tasks'],
+  matcher: ['/tasks'],
 };
 
