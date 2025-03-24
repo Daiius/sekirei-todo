@@ -12,7 +12,7 @@ set -e
 export $(cat .env.production .env | grep -v '^#' | sed 's/#.*//' | xargs)
 docker build \
   --network host \
-  -t sekirei-todo-nextjs \
+  -t daiius/private-registry:sekirei-todo-nextjs \
   -f Dockerfile.nextjs.prod .
 
 echo Build done!

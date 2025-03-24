@@ -3,14 +3,14 @@
 import { signIn as authSignIn, signOut as authSignOut} from '@/auth';
 
 /** auth.js signIn 関数をserver actionとするためのwrapper関数 */
-export const signIn = (
+export const signIn = async (
   ...params: Parameters<typeof authSignIn>
-): ReturnType<typeof authSignIn> => authSignIn(...params);
+): ReturnType<typeof authSignIn> => await authSignIn(...params);
 
 /** auth.js signOut 関数をserver actionとするためのwrapper関数 */
-export const signOut = (
+export const signOut = async (
   ...params: Parameters<typeof authSignOut>
-): ReturnType<typeof authSignOut> => authSignOut(...params);
+): ReturnType<typeof authSignOut> => await authSignOut(...params);
 
 /*
  * export { signIn, signOut } from '@/auth' は、
