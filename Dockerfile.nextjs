@@ -4,6 +4,6 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 
-CMD ['pnpm', 'next', 'dev']
+CMD ["pnpm", "next", "dev"]
 
 
