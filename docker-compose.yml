@@ -5,6 +5,7 @@ services:
     container_name: sekirei-todo-nextjs-dev
     env_file:
       - .env
+      - .env.development
     volumes:
       - .:/app
     tmpfs:
