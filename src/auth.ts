@@ -2,10 +2,10 @@ import NextAuth from "next-auth"
 import GitHub from "next-auth/providers/github"
  
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // docker環境ではtrustHost: trueが必要らしいです
+  // Docker環境やリバースプロキシ下ではtrustHost: trueが必要になりそうです
   trustHost: true,
   providers: [GitHub],
-  basePath: '/sekirei-todo/api/auth',
+  //basePath: '/api/auth',
   debug: process.env.NODE_ENV !== 'production',
   callbacks: {
     async jwt({ token, account, profile }) {
@@ -28,7 +28,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async authorized({ auth, request: { nextUrl }}) {
       console.log('authorized, nextUrl: ', nextUrl);
       const isLoggedIn = !!auth?.user;
-      // AUTH_URLの有無で/sekirei-todoの有無が変わる...注意したい
       const isOnRoot = nextUrl.pathname === '/';
       const isOnTasks = nextUrl.pathname === '/tasks';
 
@@ -38,13 +37,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // それ以外はログインページにリダイレクト
       if (isLoggedIn) {
         if (!isOnTasks) {
-          return Response.redirect(new URL('/sekirei-todo/tasks', nextUrl));
+          return Response.redirect(new URL('/tasks', nextUrl));
         }
         return true;
       } else {
         if (!isOnRoot) {
           console.log('is not on root, redirecting...', nextUrl);
-          return Response.redirect(new URL('/sekirei-todo', nextUrl));
+          return Response.redirect(new URL('/', nextUrl));
         }
         return true;
       }
