@@ -17,7 +17,7 @@ const SignInButton: React.FC<
   <Button 
     className={clsx('mt-2 p-2 flex flex-row', className)}
     onClick={async () => await signIn('github', { 
-      redirectTo: '/sekirei-todo/tasks', redirect: true 
+      redirectTo: '/tasks', redirect: true 
     })}
     {...props}
   >
