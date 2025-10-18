@@ -1,0 +1,22 @@
+{
+  "name": "honox",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.5",
+    "hono": "^4.10.1",
+    "honox": "^0.1.49"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/node": "^20.11.17",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3",
+    "vite": "^7.1.10"
+  }
+}
