@@ -5,7 +5,12 @@ export const Counter = () => {
   return (
     <div>
       <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
+      <button 
+        className='btn btn-outline'
+        onClick={() => setCount(count + 1)}
+      >
+        Increment
+      </button>
     </div>
   )
 }
