@@ -1,0 +1,11 @@
+{
+  "name": "sekirei-todo",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.0"
+}

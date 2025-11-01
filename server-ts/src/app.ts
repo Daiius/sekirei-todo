@@ -26,17 +26,16 @@ const route = app
     zValidator(
       'json',
       UpdatedTaskSchema,
+      r => console.log(r)
     ),
     zValidator(
       'param',
-      z.object({
-        userId: z.string(),
-        taskId: z.number(),
-      })
+      z.object({ userId: z.string(), taskId: z.coerce.number() }),
     ),
     async c => {
-      const { userId, taskId } = c.req.valid('param')
+      const { taskId, userId } = c.req.valid('param')
       const updatedTask = c.req.valid('json')
+
 
       if ( userId !== updatedTask.userId
         || taskId !== updatedTask.id
@@ -68,7 +67,7 @@ const route = app
   )
   .delete(
     '/users/:userId/tasks/:taskId',
-    zValidator('param', z.object({ userId: z.string(), taskId: z.number() }) ),
+    zValidator('param', z.object({ userId: z.string(), taskId: z.coerce.number() }) ),
     async c => {
       const { userId, taskId } = c.req.valid('param')
       const result = await deleteTask(userId, taskId)

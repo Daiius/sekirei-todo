@@ -20,7 +20,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.sub ?? '';
+      session.user.id = String(token.sub ?? ''); // 文字列を想定していたが実際はnumberらしい？？
       session.user.email = token.email ?? '';
       //session.user.username = token.username ?? '';
       return session;

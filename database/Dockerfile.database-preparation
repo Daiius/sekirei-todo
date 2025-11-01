@@ -1,0 +1,15 @@
+FROM node:22-slim
+
+WORKDIR /workdir/database
+
+RUN npm install -g pnpm
+
+# monorepo root
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /workdir/
+# monorepo database
+COPY database/package.json database/addTestData.ts /workdir/database/
+COPY database/db /workdir/database/db
+
+RUN pnpm install
+
+CMD ["pnpm", "drizzle-kit"]
