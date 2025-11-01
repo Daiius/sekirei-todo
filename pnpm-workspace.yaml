@@ -2,3 +2,4 @@ packages:
   - database
   - nextjs
   - honox
+  - server-ts

@@ -2,8 +2,8 @@
 
 import { auth } from '../auth';
 
-import { db } from '@/db';
-import { tasks } from '@/db/schema';
+import { db } from 'database/db';
+import { tasks } from 'database/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 type PartialBesides<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>; 
