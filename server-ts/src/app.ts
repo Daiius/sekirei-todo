@@ -1,6 +1,9 @@
 import { Hono } from 'hono'
 import {
+  addTask,
+  deleteTask,
   getTasks,
+  NewTaskSchema,
   UpdatedTaskSchema,
   updateTask,
 } from './lib'
@@ -10,13 +13,13 @@ import { z } from 'zod/v4'
 export const app = new Hono()
 
 const route = app
-  .get('/', (c) => {
-    return c.text('Hello Hono!')
-  })
   .get('/users/:userId/tasks', async c => {
     const userId = c.req.param('userId')
-    const tasks = await getTasks(userId)
-    return c.json(tasks, 200)
+    const result = await getTasks(userId)
+
+    return result.success 
+      ? c.json(result.data, 200)
+      : c.body(null, result.error.statusCode)
   })
   .patch(
     '/users/:userId/tasks/:taskId',
@@ -42,7 +45,36 @@ const route = app
       }
     
       const result = await updateTask(updatedTask)
-      return c.json(result, 200)
+
+      return result.success
+        ? c.json(result.data, 200)
+        : c.body(null, result.error.statusCode)
+    }
+  )
+  .post(
+    '/users/:userId/tasks',
+    zValidator('json', NewTaskSchema),
+    zValidator('param', z.object({ userId: z.string() })),
+    async c => {
+      const { userId } = c.req.valid('param')
+      const newTask = c.req.valid('json')
+
+      const result = await addTask(newTask, userId)
+
+      return result.success
+        ? c.json(result.data, 200)
+        : c.body(null, result.error.statusCode)
+    }
+  )
+  .delete(
+    '/users/:userId/tasks/:taskId',
+    zValidator('param', z.object({ userId: z.string(), taskId: z.number() }) ),
+    async c => {
+      const { userId, taskId } = c.req.valid('param')
+      const result = await deleteTask(userId, taskId)
+      return result.success
+        ? c.body(null, 200)
+        : c.body(null, result.error.statusCode) 
     }
   )
 

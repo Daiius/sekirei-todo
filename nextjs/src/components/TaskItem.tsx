@@ -5,7 +5,7 @@ import clsx from 'clsx';
 
 import { useDebouncedCallback } from 'use-debounce';
 
-import { mutateTask } from '@/actions/tasksActions';
+import { updateTask } from '@/actions/tasksActions';
 import { Task } from '@/types';
 
 import Input from '@/components/Input';
@@ -21,7 +21,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   ...props
 }) => {
   const debouncedOnChange = useDebouncedCallback(
-    async (value: string) => await mutateTask({
+    async (value: string) => await updateTask({
       id: task.id, description: value
     }),
     500
@@ -31,7 +31,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     <div
       className={clsx(
         'flex flex-row items-center gap-3',
-        'p-2 border border-1 border-slate-300 rounded-md',
+        'p-2 border border-slate-300 rounded-md',
         props.className
       )}
       {...props}
