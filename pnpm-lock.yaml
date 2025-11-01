@@ -6,6 +6,22 @@ settings:
 
 importers:
 
+  database:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.44.6
+        version: 0.44.6(mysql2@3.15.2)
+      mysql2:
+        specifier: ^3.15.2
+        version: 3.15.2
+    devDependencies:
+      '@types/node':
+        specifier: ^24.9.2
+        version: 24.9.2
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   honox:
     dependencies:
       '@hono/node-server':
@@ -57,6 +73,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      database:
+        specifier: workspace:*
+        version: link:../database
       drizzle-orm:
         specifier: ^0.44.2
         version: 0.44.6(mysql2@3.15.2)
@@ -112,6 +131,28 @@ importers:
       tailwindcss:
         specifier: ^4.1.14
         version: 4.1.14
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  server-ts:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.19.6
+        version: 1.19.6(hono@4.10.4)
+      database:
+        specifier: workspace:*
+        version: link:../database
+      hono:
+        specifier: ^4.10.4
+        version: 4.10.4
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.17
+        version: 20.19.22
+      tsx:
+        specifier: ^4.7.1
+        version: 4.20.6
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -559,6 +600,12 @@ packages:
 
   '@hono/node-server@1.19.5':
     resolution: {integrity: sha512-iBuhh+uaaggeAuf+TftcjZyWh2GEgZcVGXkNtskLVoWaXhnJtC5HLHrU8W1KHDoucqO1MswwglmkWLFyiDn4WQ==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      hono: ^4
+
+  '@hono/node-server@1.19.6':
+    resolution: {integrity: sha512-Shz/KjlIeAhfiuE93NDKVdZ7HdBVLQAfdbaXEaoAVO3ic9ibRSLGIQGkcBbFyuLr+7/1D5ZCINM8B+6IvXeMtw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
@@ -1095,6 +1142,9 @@ packages:
 
   '@types/node@24.8.1':
     resolution: {integrity: sha512-alv65KGRadQVfVcG69MuB4IzdYVpRwMG/mq8KWOaoOdyY617P5ivaDiMCGOFDWD2sAn5Q0mR3mRtUOgm99hL9Q==}
+
+  '@types/node@24.9.2':
+    resolution: {integrity: sha512-uWN8YqxXxqFMX2RqGOrumsKeti4LlmIMIyV0lgut4jx7KQBcBiW6vkDtIBvHnHIquwNfJhk8v2OtmO8zXWHfPA==}
 
   '@types/react-dom@19.2.2':
     resolution: {integrity: sha512-9KQPoO6mZCi7jcIStSnlOWn2nEF3mNmyr3rIAsGnAbQKYbRLyqmeSc39EVgtxXVia+LMT8j3knZLAZAh+xLmrw==}
@@ -2001,6 +2051,10 @@ packages:
     resolution: {integrity: sha512-rpGNOfacO4WEPClfkEt1yfl8cbu10uB1lNpiI33AKoiAHwOS8lV748JiLx4b5ozO/u4qLjIvfpFsPXdY5Qjkmg==}
     engines: {node: '>=16.9.0'}
 
+  hono@4.10.4:
+    resolution: {integrity: sha512-YG/fo7zlU3KwrBL5vDpWKisLYiM+nVstBQqfr7gCPbSYURnNEP9BDxEMz8KfsDR9JX0lJWDRNc6nXX31v7ZEyg==}
+    engines: {node: '>=16.9.0'}
+
   honox@0.1.49:
     resolution: {integrity: sha512-oEM+Xw5r4/7Htz1gXA+0XO5aJ65xrYn+V+IzNOsKU7VCJEDXV3cmnFc/EKplXXJiMXuqz6wCH7rr/LPHGwg1rA==}
     engines: {node: '>=18.14.1'}
@@ -2813,6 +2867,9 @@ packages:
   undici-types@7.14.0:
     resolution: {integrity: sha512-QQiYxHuyZ9gQUIrmPo3IA+hUl4KYk8uSA7cHrcKd/l3p1OTpZcM0Tbp9x7FAtXdAYhlasd60ncPpgu6ihG6TOA==}
 
+  undici-types@7.16.0:
+    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+
   unrs-resolver@1.11.1:
     resolution: {integrity: sha512-bSjt9pjaEBnNiGgc9rUiHGKv5l4/TGzDmYw3RhnkJGtLhbnnA/5qJj7x3dNDCRx/PJxu774LlH8lCOlB4hEfKg==}
 
@@ -3245,9 +3302,17 @@ snapshots:
     dependencies:
       hono: 4.10.1
 
+  '@hono/node-server@1.19.6(hono@4.10.1)':
+    dependencies:
+      hono: 4.10.1
+
+  '@hono/node-server@1.19.6(hono@4.10.4)':
+    dependencies:
+      hono: 4.10.4
+
   '@hono/vite-dev-server@0.20.1(hono@4.10.1)':
     dependencies:
-      '@hono/node-server': 1.19.5(hono@4.10.1)
+      '@hono/node-server': 1.19.6(hono@4.10.1)
       hono: 4.10.1
       minimatch: 9.0.5
 
@@ -3655,6 +3720,10 @@ snapshots:
   '@types/node@24.8.1':
     dependencies:
       undici-types: 7.14.0
+
+  '@types/node@24.9.2':
+    dependencies:
+      undici-types: 7.16.0
 
   '@types/react-dom@19.2.2(@types/react@19.2.2)':
     dependencies:
@@ -4709,6 +4778,8 @@ snapshots:
 
   hono@4.10.1: {}
 
+  hono@4.10.4: {}
+
   honox@0.1.49(hono@4.10.1):
     dependencies:
       '@babel/generator': 7.25.6
@@ -5614,6 +5685,8 @@ snapshots:
   undici-types@6.21.0: {}
 
   undici-types@7.14.0: {}
+
+  undici-types@7.16.0: {}
 
   unrs-resolver@1.11.1:
     dependencies:

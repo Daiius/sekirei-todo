@@ -26,7 +26,8 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "use-debounce": "^10.0.5",
-    "zod": "^3.25.63"
+    "zod": "^3.25.63",
+    "database": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.0.1",
