@@ -38,6 +38,8 @@ export const updateTask = async (updatedTask: UpdateTaskArg) => {
     return undefined
   }
 
+  console.log('updatedTask: ', updatedTask)
+
   const result = await updateTaskApi({ 
     json: { ...updatedTask, userId },
     param: { 
@@ -47,7 +49,7 @@ export const updateTask = async (updatedTask: UpdateTaskArg) => {
   })
 
   if (!result.ok) {
-    console.error(`error @ updateTask: code=${result.status}`)
+    console.error(`error @ updateTask: code=${result.status} ${result.statusText}`)
     return undefined
   }
 

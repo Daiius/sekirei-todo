@@ -1,0 +1,90 @@
+services:
+  nextjs:
+    build:
+      dockerfile: ./nextjs/Dockerfile
+    container_name: sekirei-todo-nextjs
+    working_dir: /workdir/nextjs
+    env_file:
+      - .env.local
+    ports:
+      - 3000:3000
+    volumes:
+      - ./nextjs:/workdir/nextjs
+      - /workdir/nextjs/node_modules
+      - ./server-ts:/workdir/server-ts
+      - /workdir/server-ts/node_modules
+      - ./database:/workdir/database
+      - /workdir/database/node_modules
+      - /workdir/node_modules
+    tmpfs:
+      - /workdir/nextjs/.next
+
+  server-ts:
+    build:
+      dockerfile: ./server-ts/Dockerfile
+    container_name: sekirei-todo-server-ts
+    working_dir: /workdir/server-ts
+    env_file:
+      - .env.local
+    ports:
+      - 4000:4000
+    volumes:
+      - ./database:/workdir/database
+      - /workdir/database/node_modules
+      - ./server-ts:/workdir/server-ts
+      - /workdir/server-ts/node_modules
+      - /workdir/node_modules
+
+  database:
+    image: mysql:8.4
+    container_name: sekirei-todo-database
+    env_file:
+      - .env.local
+    tmpfs:
+      - /var/lib/mysql
+    environment:
+      TZ: 'Asia/Tokyo'
+      LANG: 'ja_JP.UTF-8'
+    cap_add:
+      - SYS_NICE
+    healthcheck:
+      # こちらはデータ初期化時にtemporal serverが立ち上がるのを
+      # きちんと待つためのコマンド
+      test: mysql -u $$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE -e "select 1;"
+      # こちらはマルチステージビルドであらかじめ初期化を済ませた
+      # temporal serverが立ち上がらないとき用の簡易コマンド
+      # test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 20s
+      retries: 3
+      start_period: 5s
+  
+  database-preparation:
+    build:
+      dockerfile: ./database/Dockerfile.database-preparation
+    container_name: sekirei-todo-database-preparation
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: 'development'
+    volumes:
+      - ./database:/workdir/database
+    command: >
+      bash -c '
+        pnpm drizzle-kit push \
+          --dialect=mysql \
+          --schema=./db/schema.ts \
+          --host=$$DB_HOST \
+          --user=$$MYSQL_USER \
+          --password=$$MYSQL_PASSWORD \
+          --database=$$MYSQL_DATABASE; \
+        pnpx tsx addTestData.ts
+      '
+    depends_on:
+      database:
+        condition: service_healthy
+
+networks:
+  default:
+    name: sekirei-todo-network
+
