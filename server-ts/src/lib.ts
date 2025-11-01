@@ -5,9 +5,11 @@ import { and, eq } from 'drizzle-orm'
 import { createInsertSchema, createUpdateSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
 
+type StatusCode = 400 | 401 | 500
+
 export type ApiResult<T> =
   | { success: true, data: T }
-  | { success: false, error: { message: string, statusCode: number; } }
+  | { success: false, error: { message: string, statusCode: StatusCode; } }
 
 export type Task = typeof tasks.$inferSelect
 
@@ -81,6 +83,30 @@ export const updateTask = async (updatedTask: UpdatedTask): Promise<ApiResult<Up
     }
   } catch (err) {
     console.error('error @ updateTask: ', err)
+    return {
+      success: false,
+      error: {
+        message: String(err),
+        statusCode: 500,
+      }
+    }
+  }
+}
+
+export const deleteTask = async (
+  userId: string, 
+  taskId: number
+): Promise<ApiResult<undefined>> => {
+  try {
+    await db.delete(tasks).where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.userId, userId),
+      )
+    )
+    return { success: true, data: undefined }
+  } catch (err) {
+    console.error('error @ deleteTask: ', err)
     return {
       success: false,
       error: {
