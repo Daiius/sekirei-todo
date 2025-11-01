@@ -2,6 +2,11 @@
   "name": "server-ts",
   "type": "module",
   "private": true,
+  "exports": {
+    ".": {
+      "types": "./src/app.ts"
+    }
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",

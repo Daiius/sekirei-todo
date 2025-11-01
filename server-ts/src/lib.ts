@@ -5,10 +5,32 @@ import { and, eq } from 'drizzle-orm'
 import { createInsertSchema, createUpdateSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
 
-export const getTasks = async (userId: string) => 
-  await db.query.tasks.findMany({
-    where: eq(tasks.userId, userId),
-  })
+export type ApiResult<T> =
+  | { success: true, data: T }
+  | { success: false, error: { message: string, statusCode: number; } }
+
+export type Task = typeof tasks.$inferSelect
+
+export const getTasks = async (userId: string): Promise<ApiResult<Task[]>> => {
+  try { 
+    const result = await db.query.tasks.findMany({
+      where: eq(tasks.userId, userId),
+    })
+    return {
+      success: true,
+      data: result,
+    }
+  } catch (err) {
+    console.error('error @ getTasks: ', err)
+    return {
+      success: false,
+      error: {
+        message: String(err),
+        statusCode: 500,
+      }
+    }
+  }
+}
 
 export const NewTaskSchema = createInsertSchema(tasks)
   .omit({ 
@@ -26,17 +48,45 @@ export type UpdatedTask = z.infer<typeof UpdatedTaskSchema>
 export const addTask = async (
   newTask: NewTask,
   userId: string,
-) => {
-  await db.insert(tasks).values({ ...newTask, userId });
-  return newTask;
+): Promise<ApiResult<NewTask>> => {
+  try {
+    await db.insert(tasks).values({ ...newTask, userId });
+    return {
+      success: true,
+      data: newTask,
+    }
+  } catch (err) {
+    console.error('error @ addTask: ', err)
+    return {
+      success: false,
+      error: {
+        message: String(err),
+        statusCode: 500,
+      }
+    }
+  }
 }
 
-export const updateTask = async (updatedTask: UpdatedTask) => {
-  await db.update(tasks).set(updatedTask).where(
-    and(
-      eq(tasks.id, updatedTask.id),
-      eq(tasks.userId, updatedTask.userId),
+export const updateTask = async (updatedTask: UpdatedTask): Promise<ApiResult<UpdatedTask>> => {
+  try {
+    await db.update(tasks).set(updatedTask).where(
+      and(
+        eq(tasks.id, updatedTask.id),
+        eq(tasks.userId, updatedTask.userId),
+      )
     )
-  )
-  return updatedTask
+    return {
+      success:true,
+      data: updatedTask
+    }
+  } catch (err) {
+    console.error('error @ updateTask: ', err)
+    return {
+      success: false,
+      error: {
+        message: String(err),
+        statusCode: 500,
+      }
+    }
+  }
 }
