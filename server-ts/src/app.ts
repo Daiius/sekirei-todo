@@ -18,7 +18,7 @@ export const app = new Hono()
 app.use('*', logger())
 app.use('*', bearerAuth({ token: process.env.API_KEY ?? '' }))
 app.use('*', cors({
-  origin: '*',
+  origin: process.env.CORS_ORIGINS?.split(',') ?? '',
 }))
 
 const route = app
