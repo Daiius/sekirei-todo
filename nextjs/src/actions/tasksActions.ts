@@ -5,7 +5,16 @@ import { auth } from '../auth';
 import type { AppType } from 'server-ts'
 import { hc, InferRequestType } from 'hono/client'
 
-const client = hc<AppType>(process.env.API_URL!)
+const client = hc<AppType>(
+  process.env.API_URL!, 
+  {
+    fetch: async (url: RequestInfo | URL, init?: RequestInit) => {
+      const headers = new Headers(init?.headers)
+      headers.set('Authorization', `Bearer ${process.env.API_KEY}`)
+      return await fetch(url, { ...init, headers })
+    }
+  }
+)
 
 export const getTasks = async () => {
   const session = await auth()
