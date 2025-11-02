@@ -12,9 +12,9 @@ export const metadata: Metadata = {
   description: "セキレイが尻尾を振るTo-Doアプリ",
   openGraph: {
     type: 'website',
-    url: 'https://sekirei.faveo-systema.net',
+    url: 'https://sekirei-todo.faveo-systema.net',
     siteName: 'Sekirei Todo',
-    images: 'https://sekirei.faveo-systema.net/ogimage.png',
+    images: 'https://sekirei-todo.faveo-systema.net/ogimage.png',
   },
 };
 
