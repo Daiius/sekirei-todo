@@ -1,4 +1,7 @@
 import { Hono } from 'hono'
+import { logger } from 'hono/logger'
+import { bearerAuth } from 'hono/bearer-auth'
+import { cors } from 'hono/cors'
 import {
   addTask,
   deleteTask,
@@ -11,6 +14,12 @@ import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod/v4'
 
 export const app = new Hono()
+
+app.use('*', logger())
+app.use('*', bearerAuth({ token: process.env.API_KEY ?? '' }))
+app.use('*', cors({
+  origin: '*',
+}))
 
 const route = app
   .get('/users/:userId/tasks', async c => {
