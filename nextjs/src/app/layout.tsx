@@ -27,9 +27,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={clsx(
         'bg-slate-200 dark:bg-slate-800 flex flex-col',
-        'min-h-screen',
+        'min-h-screen antialiased',
       )}>
-        <ThemeProvider defaultTheme='light' attribute='class'>
+        <ThemeProvider enableSystem attribute='class'>
           <Header />
           {children}
         </ThemeProvider>
