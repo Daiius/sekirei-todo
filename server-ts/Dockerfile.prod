@@ -1,0 +1,45 @@
+FROM node:22-slim AS build
+
+WORKDIR /workdir/server-ts
+
+RUN npm install -g pnpm
+
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /workdir/
+COPY ./server-ts/package.json /workdir/server-ts/
+COPY ./database/package.json /workdir/database/
+
+RUN pnpm install --filter server-ts --filter database
+
+COPY ./server-ts/src/ /workdir/server-ts/src/
+COPY ./database/db/index.ts ./database/db/schema.ts /workdir/database/db/ 
+COPY ./server-ts/tsconfig.json ./server-ts/esbuild.config.ts /workdir/server-ts/
+
+RUN pnpm build
+
+
+FROM node:22-slim AS node_modules
+WORKDIR /workdir/server-ts
+
+RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml pnpm-workdir.yaml /workdir/
+COPY ./server-ts/package.json /workdir/server-ts/
+COPY ./database/package.json /workdir/database/
+
+COPY ./server-ts/src/ /workdir/server-ts/src/
+COPY ./server-ts/tsconfig.json ./server-ts/esbuild.config.ts /workdir/server-ts/
+
+RUN pnpm install --prod --filter server-ts --filter database 
+
+#RUN ls ./node_modules/tsx/dist
+
+FROM gcr.io/distroless/nodejs22:debug
+
+WORKDIR /workdir/server-ts
+
+COPY ./server-ts/package.json ./
+COPY --from=build /workdir/server-ts/dist/index.js /workdir/server-ts/index.js
+
+CMD ["index.js"]
+
