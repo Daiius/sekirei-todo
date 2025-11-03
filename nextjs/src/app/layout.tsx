@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import clsx from 'clsx';
 
 import { ThemeProvider } from 'next-themes';
 
-import Header from '@/components/Header';
+import { Header } from '@/components/Header';
 
 import "./globals.css";
 
@@ -25,10 +24,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={clsx(
-        'bg-slate-200 dark:bg-slate-800 flex flex-col',
-        'min-h-dvh antialiased',
-      )}>
+      <body className='
+        bg-slate-200 dark:bg-slate-800 flex flex-col
+        min-h-dvh antialiased'
+      >
         <ThemeProvider enableSystem attribute='class'>
           <Header />
           {children}

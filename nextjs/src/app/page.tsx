@@ -1,8 +1,6 @@
-import React from 'react';
-import clsx from 'clsx';
 
 
-import SekireiIcon from '@/components/SekireiIcon';
+import { SekireiIcon } from '@/components/SekireiIcon';
 import SignInButton from '@/components/SignInButton';
 
 export default function Page() {
