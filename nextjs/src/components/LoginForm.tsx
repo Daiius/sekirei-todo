@@ -5,7 +5,7 @@ import { signIn } from '@/auth';
 
 import Button from '@/components/Button';
 import { ArrowLeftEndOnRectangleIcon } from '@heroicons/react/24/outline';
-import SekireiIcon from './SekireiIcon';
+import { SekireiIcon } from './SekireiIcon';
 
 export default function LoginForm() {
 
