@@ -1,15 +1,12 @@
-import React from 'react';
 import clsx from 'clsx';
 
-const SekireiBody: React.FC<React.ComponentProps<'svg'>> = (
-  props
-) => (
+const SekireiBody = ({ className }: { className?: string}) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="256"
     height="256"
     viewBox="0 0 256 256"
-    {...props}
+    className={clsx(className)}
   >
     <g id="layer1">
       <path
@@ -67,15 +64,13 @@ const SekireiBody: React.FC<React.ComponentProps<'svg'>> = (
   </svg>
 );
 
-const SekireiTail: React.FC<React.ComponentProps<'svg'>> = (
-  props
-) => (
+const SekireiTail = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="256"
     height="256"
     viewBox="0 0 256 256"
-    {...props}
+    className={clsx(className)}
   >
     <g id="layer1">
       <path
@@ -89,21 +84,16 @@ const SekireiTail: React.FC<React.ComponentProps<'svg'>> = (
   </svg>
 );
 
-const SekireiIcon: React.FC<React.ComponentProps<'div'>> = ({
+type Props = { className?: string }
+
+export const SekireiIcon = ({
   className,
-  ...props
-}) => (
-  <div
-    {...props}
-    className={clsx(
-      'min-size-[200px] size-[200px] bg-radial from-slate-400 from-60% to-slate-200/10',
-      className
-    )}
-  >
+}: Props) => (
+  <div className={clsx(
+    'size-[200px] bg-radial from-slate-400 from-60% to-slate-200/10',
+    className
+  )}>
     <SekireiTail className='absolute size-[200px] animate-tail-wag origin-[60%_50%]' />
     <SekireiBody className='absolute size-[200px]' />
   </div>
 );
-
-export default SekireiIcon;
-

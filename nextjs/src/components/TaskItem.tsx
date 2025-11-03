@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react';
 import clsx from 'clsx';
 
 import { useDebouncedCallback } from 'use-debounce';
@@ -14,11 +13,12 @@ import TaskItemMenu from './TaskItemMenu';
 
 export type TaskItemProps = {
   task: Task;
-} & React.ComponentProps<'div'>;
+  className?: string;
+};
 
-const TaskItem: React.FC<TaskItemProps> = ({ 
+export const TaskItem: React.FC<TaskItemProps> = ({ 
   task,
-  ...props
+  className,
 }) => {
   const debouncedOnChange = useDebouncedCallback(
     async (value: string) => await updateTask({
@@ -32,9 +32,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
       className={clsx(
         'flex flex-row items-center gap-3',
         'p-2 border border-slate-300 rounded-md',
-        props.className
+        className
       )}
-      {...props}
     >
       <Input
         type='text'
@@ -45,6 +44,3 @@ const TaskItem: React.FC<TaskItemProps> = ({
     </div> 
   );
 }
-
-export default TaskItem;
-

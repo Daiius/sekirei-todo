@@ -1,18 +1,17 @@
 'use client'
 
-import React from 'react';
-import clsx from 'clsx';
+import { useActionState } from 'react';
 
 import Input from '@/components/Input';
 import { addTask } from '@/actions/tasksActions';
 
 import { useRouter } from 'next/navigation';
 
-const TaskInput: React.FC = () => {
+export const TaskInput: React.FC = () => {
 
   const router = useRouter();
 
-  const [errorMessage, formAction, isPending] = React.useActionState(
+  const [errorMessage, formAction, isPending] = useActionState(
     async (prevState: string | undefined, formData: FormData) => {
       const description = formData.get('description')?.toString();
       if (description != null) {
@@ -27,10 +26,7 @@ const TaskInput: React.FC = () => {
     <>
       <form
         action={formAction}
-        className={clsx(
-          'flex flex-row items-center gap-3',
-          'p-2 border border-1 border-slate-300 rounded-md',
-        )}
+        className='flex flex-row items-center gap-3 p-2 border border-slate-300 rounded-md'
       >
         <Input
           type='text'
@@ -48,6 +44,3 @@ const TaskInput: React.FC = () => {
     </>
   );
 };
-
-export default TaskInput;
-

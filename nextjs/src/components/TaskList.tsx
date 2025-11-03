@@ -1,8 +1,11 @@
-import React from 'react';
 import clsx from 'clsx';
 
 import { getTasks } from '@/actions/tasksActions';
-import TaskItem from './TaskItem';
+import { TaskItem } from './TaskItem';
+
+type TaskListProps = {
+  className?: string,
+}
 
 /**
  * ToDo Taskの一覧を取得します
@@ -12,10 +15,10 @@ import TaskItem from './TaskItem';
  * 一括でTask[]を取得し、子コンポーネントに伝えます。
  *
  */
-const TaskList: React.FC<React.ComponentProps<'div'>> = async ({
+export const TaskList = async ({
   className,
-  ...props
-}) => {
+}: TaskListProps) => {
+  'use cache: private'
   const tasks = await getTasks();
   return (
     <div
@@ -23,7 +26,6 @@ const TaskList: React.FC<React.ComponentProps<'div'>> = async ({
         'text-lg flex flex-col gap-3',
         className,
       )}
-      {...props}
     >
       {tasks?.map(task =>
         <TaskItem key={task.id} task={task} />
@@ -31,6 +33,3 @@ const TaskList: React.FC<React.ComponentProps<'div'>> = async ({
     </div>
   );
 };
-
-export default TaskList;
-
