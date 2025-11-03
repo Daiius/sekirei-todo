@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-export async function middleware(
+export async function proxy(
   req: NextApiRequest,
   res: NextApiResponse
 ) {

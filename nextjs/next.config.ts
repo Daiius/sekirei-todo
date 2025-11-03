@@ -1,5 +1,7 @@
 import { NextConfig } from 'next';
 
-const nextConfig = { } satisfies NextConfig;
+const nextConfig = { 
+  cacheComponents: true,
+} satisfies NextConfig;
 
 export default nextConfig;
