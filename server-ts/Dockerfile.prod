@@ -12,7 +12,7 @@ COPY ./database/package.json /workdir/database/
 RUN pnpm install --filter server-ts --filter database
 
 COPY ./server-ts/src/ /workdir/server-ts/src/
-COPY ./database/db/index.ts ./database/db/schema.ts /workdir/database/db/ 
+COPY ./database/db/index.ts ./database/db/schema.ts ./database/db/lib.ts ./database/db/relations.ts /workdir/database/db/ 
 COPY ./server-ts/tsconfig.json ./server-ts/esbuild.config.ts /workdir/server-ts/
 
 RUN pnpm build
