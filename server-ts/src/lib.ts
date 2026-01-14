@@ -1,9 +1,15 @@
-import { tasks } from 'database/db/schema'
-import { db } from 'database/db'
-import { and, eq } from 'drizzle-orm'
+import { 
+  getTasks as getTasksDb, 
+  insertTask as insertTaskDb, 
+  updateTask as updateTaskDb,
+  deleteTask as deleteTaskDb,
+} from 'database/db/lib'
+import type { 
+  Task,
+  NewTask, 
+  UpdatedTask,
+} from 'database/db/lib'
 
-import { createInsertSchema, createUpdateSchema } from 'drizzle-zod'
-import { z } from 'zod/v4'
 
 type StatusCode = 400 | 401 | 500
 
@@ -11,13 +17,9 @@ export type ApiResult<T> =
   | { success: true, data: T }
   | { success: false, error: { message: string, statusCode: StatusCode; } }
 
-export type Task = typeof tasks.$inferSelect
-
 export const getTasks = async (userId: string): Promise<ApiResult<Task[]>> => {
   try { 
-    const result = await db.query.tasks.findMany({
-      where: eq(tasks.userId, userId),
-    })
+    const result = await getTasksDb(userId)
     return {
       success: true,
       data: result,
@@ -34,25 +36,15 @@ export const getTasks = async (userId: string): Promise<ApiResult<Task[]>> => {
   }
 }
 
-export const NewTaskSchema = createInsertSchema(tasks)
-  .omit({ 
-    id: true,
-    createdAt: true,
-    userId: true,
-  })
 
-export const UpdatedTaskSchema = createUpdateSchema(tasks)
-  .required({ id: true, userId: true })
 
-export type NewTask = z.infer<typeof NewTaskSchema>
-export type UpdatedTask = z.infer<typeof UpdatedTaskSchema>
 
 export const addTask = async (
   newTask: NewTask,
   userId: string,
 ): Promise<ApiResult<NewTask>> => {
   try {
-    await db.insert(tasks).values({ ...newTask, userId });
+    await insertTaskDb(userId, newTask)   
     return {
       success: true,
       data: newTask,
@@ -71,12 +63,7 @@ export const addTask = async (
 
 export const updateTask = async (updatedTask: UpdatedTask): Promise<ApiResult<UpdatedTask>> => {
   try {
-    await db.update(tasks).set(updatedTask).where(
-      and(
-        eq(tasks.id, updatedTask.id),
-        eq(tasks.userId, updatedTask.userId),
-      )
-    )
+    await updateTaskDb(updatedTask)
     return {
       success:true,
       data: updatedTask
@@ -98,12 +85,7 @@ export const deleteTask = async (
   taskId: number
 ): Promise<ApiResult<undefined>> => {
   try {
-    await db.delete(tasks).where(
-      and(
-        eq(tasks.id, taskId),
-        eq(tasks.userId, userId),
-      )
-    )
+    await deleteTaskDb(userId, taskId)
     return { success: true, data: undefined }
   } catch (err) {
     console.error('error @ deleteTask: ', err)
@@ -116,3 +98,5 @@ export const deleteTask = async (
     }
   }
 }
+
+export { UpdatedTaskSchema, NewTaskSchema } from 'database/db/lib'
