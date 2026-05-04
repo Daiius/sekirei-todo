@@ -3,10 +3,11 @@ services:
     image: mysql:8.4
     container_name: sekirei-todo-database
     env_file:
-      - .env.local
+      - .env.database
     environment:
       TZ: 'Asia/Tokyo'
       LANG: 'ja_JP.UTF-8'
+      DB_HOST: database
     ports:
       - "3306:3306"
     volumes:
@@ -27,7 +28,8 @@ services:
     container_name: sekirei-todo-server-ts
     working_dir: /workspace/server-ts
     env_file:
-      - .env.local
+      - .env.database
+      - .env.server-ts
     environment:
       DB_HOST: database
     command: pnpm dev

@@ -1,24 +1,35 @@
-import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { db } from 'database/db';
+import { headers as nextHeaders } from 'next/headers';
 
-export const auth = betterAuth({
-  appName: 'sekirei-todo',
-  database: drizzleAdapter(db, { provider: 'mysql' }),
-  socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      // GitHub OAuth で email スコープを許可していない・primary email を private にしている
-      // ユーザでもログインできるよう、login をベースにプレースホルダ email を合成する。
-      // .local は予約サフィックスで実際のメール送信先にはならない。
-      mapProfileToUser: (profile) => ({
-        email: profile.email ?? `${profile.login}@github.placeholder.local`,
-        name: profile.name ?? profile.login,
-      }),
-    },
-  },
-  advanced: {
-    cookiePrefix: 'sekirei',
-  },
-});
+export type Session = {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+  };
+  session: {
+    id: string;
+    userId: string;
+    expiresAt: string;
+  };
+};
+
+/**
+ * server-ts の /api/auth/get-session を呼んで、現在のリクエストのクッキーから
+ * session を取得する。better-auth は VPS 側 (server-ts) に置かれているため、
+ * Next.js (Vercel) からは HTTP 経由で session を確認する。
+ */
+export const getSession = async (): Promise<Session | null> => {
+  const cookie = (await nextHeaders()).get('cookie') ?? '';
+  if (!cookie) return null;
+
+  const apiUrl = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL;
+  const res = await fetch(`${apiUrl}/api/auth/get-session`, {
+    headers: { cookie },
+    cache: 'no-store',
+  });
+  if (!res.ok) return null;
+  const body = await res.text();
+  if (!body || body === 'null') return null;
+  return JSON.parse(body) as Session;
+};
