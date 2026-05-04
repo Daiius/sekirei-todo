@@ -1,12 +1,14 @@
 'use server'
 
-import { auth } from '../auth';
+import { headers } from 'next/headers';
+
+import { auth } from '@/lib/auth';
 
 import type { AppType } from 'server-ts'
 import { hc, InferRequestType } from 'hono/client'
 
 const client = hc<AppType>(
-  process.env.API_URL!, 
+  process.env.API_URL!,
   {
     fetch: async (url: RequestInfo | URL, init?: RequestInit) => {
       const headers = new Headers(init?.headers)
@@ -16,15 +18,19 @@ const client = hc<AppType>(
   }
 )
 
+const getUserId = async () => {
+  const session = await auth.api.getSession({ headers: await headers() });
+  return session?.user?.id;
+};
+
 export const getTasks = async () => {
-  const session = await auth()
-  const userId = session?.user?.id
+  const userId = await getUserId();
   if (userId == null) {
     console.error(`error @ getTasks: not authorized!`)
     return []
   }
 
-  const result = await client.users[':userId'].tasks.$get({ param: { userId } }) 
+  const result = await client.users[':userId'].tasks.$get({ param: { userId } })
   if (!result.ok) {
     console.error(`error @ getTasks: code=${result.status}`)
     return []
@@ -40,8 +46,7 @@ type UpdateTaskArg = Omit<
 >
 
 export const updateTask = async (updatedTask: UpdateTaskArg) => {
-  const session = await auth()
-  const userId = session?.user?.id
+  const userId = await getUserId();
   if (userId == null) {
     console.error('error @ updateTask: not authorized')
     return undefined
@@ -49,12 +54,12 @@ export const updateTask = async (updatedTask: UpdateTaskArg) => {
 
   console.log('updatedTask: ', updatedTask)
 
-  const result = await updateTaskApi({ 
+  const result = await updateTaskApi({
     json: { ...updatedTask, userId },
-    param: { 
+    param: {
       taskId: updatedTask.id.toString(),
       userId: userId,
-    } 
+    }
   })
 
   if (!result.ok) {
@@ -69,14 +74,13 @@ const addTaskApi = client.users[':userId'].tasks.$post
 type AddTaskArg = InferRequestType<typeof addTaskApi>['json']
 
 export const addTask = async (newTask: AddTaskArg) => {
-  const session = await auth()
-  const userId = session?.user?.id
+  const userId = await getUserId();
   if (userId == null) {
     console.error('error @ addTask : not authorized')
     return undefined
   }
-  const result = await addTaskApi({ 
-    json: newTask, 
+  const result = await addTaskApi({
+    json: newTask,
     param: { userId, }
   })
 
@@ -89,8 +93,7 @@ export const addTask = async (newTask: AddTaskArg) => {
 
 const deleteTaskApi = client.users[':userId'].tasks[':taskId'].$delete
 export const deleteTask = async (taskId: number) => {
-  const session = await auth()
-  const userId = session?.user?.id
+  const userId = await getUserId();
   if (userId == null) {
     console.error('error @ deleteTask: not authorized')
     return

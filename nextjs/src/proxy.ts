@@ -1,18 +1,28 @@
-import { auth } from '@/auth';
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 
-export async function proxy(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  console.log('middleware, req: ', req);
-  return auth(req, res);
+export function proxy(request: NextRequest) {
+  const sessionCookie = getSessionCookie(request, {
+    cookiePrefix: 'sekirei',
+  });
+  const isLoggedIn = !!sessionCookie;
+  const { pathname } = request.nextUrl;
+  const isOnRoot = pathname === '/';
+  const isOnTasks = pathname === '/tasks';
+
+  if (isLoggedIn) {
+    if (!isOnTasks) {
+      return NextResponse.redirect(new URL('/tasks', request.nextUrl));
+    }
+    return NextResponse.next();
+  }
+
+  if (!isOnRoot) {
+    return NextResponse.redirect(new URL('/', request.nextUrl));
+  }
+  return NextResponse.next();
 }
 
-
 export const config = {
-  // 変更した場合にはnext.jsコンテナを再起動する必要がありそう
-  // (キャッシュされているみたい)
   matcher: ['/', '/tasks'],
 };
-

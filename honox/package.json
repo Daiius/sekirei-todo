@@ -7,19 +7,19 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.5",
-    "hono": "^4.10.1",
+    "@hono/node-server": "^2.0.1",
+    "hono": "catalog:",
     "honox": "^0.1.49"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.14",
-    "@types/node": "^20.11.17",
+    "@types/node": "catalog:",
     "@types/subset-font": "^2.3.0",
     "daisyui": "^5.3.7",
     "subset-font": "^2.4.0",
     "tailwindcss": "^4.1.14",
-    "tsx": "^4.7.1",
-    "typescript": "^5.8.3",
+    "tsx": "^4.21.0",
+    "typescript": "catalog:",
     "vite": "^7.1.10"
   }
 }

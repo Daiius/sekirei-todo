@@ -3,3 +3,12 @@ packages:
   - nextjs
   - honox
   - server-ts
+
+catalog:
+  typescript: ^6.0.3
+  "@types/node": ^25.6.0
+  hono: ^4.12.16
+  zod: ^4.4.2
+  drizzle-orm: 1.0.0-rc.1
+  drizzle-kit: 1.0.0-rc.1
+  drizzle-zod: ^0.8.3

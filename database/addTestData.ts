@@ -1,4 +1,4 @@
-import { tasks } from './db/schema';
+import { tasks, user } from './db/schema';
 
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
@@ -13,10 +13,18 @@ const client = await mysql.createConnection({
 
 const db = drizzle({ client });
 
+const testUserId = process.env.TEST_USER_ID ?? 'test-user-001';
+
+await db.insert(user).values([{
+  id: testUserId,
+  name: 'Test User',
+  email: 'test@example.com',
+  emailVerified: true,
+}]).onDuplicateKeyUpdate({ set: { name: 'Test User' } });
+
 await db.insert(tasks).values([{
-  userId: process.env.TEST_GITHUB_ID!,
+  userId: testUserId,
   description: 'this is a test task!',
 }]);
 
 await client.end();
-

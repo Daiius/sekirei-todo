@@ -7,25 +7,25 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core';
 
-// JWTにユーザ情報が大体入るので
-// 思い切ってUsersテーブルを削除
+import { user } from './auth-schema';
 
 export const projects = mysqlTable(
-  'Projects', 
+  'Projects',
   {
-    id: 
+    id:
       varchar('id', { length: 256 })
       .unique()
       .notNull(),
-    userId: 
-      varchar('userId', { length: 128 })
-      .notNull(),
-    createdAt: 
+    userId:
+      varchar('userId', { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt:
       timestamp('createdAt')
       .defaultNow(),
-  }, 
+  },
   (table) => [
-    primaryKey({ columns: [table.id, table.userId]})
+    primaryKey({ columns: [table.id, table.userId] }),
   ],
 );
 
@@ -34,25 +34,28 @@ export const tasks = mysqlTable(
   'Tasks', {
     id:
       serial('id')
-      .notNull() .primaryKey(),
-    userId: 
-      varchar('userId', { length: 128 })
-      .notNull(),
-    projectId: 
+      .notNull().primaryKey(),
+    userId:
+      varchar('userId', { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    projectId:
       varchar('projectId', { length: 256 })
       .references(() => projects.id),
-    description: 
+    description:
       varchar('content', { length: 512 })
       .notNull(),
-    createdAt: 
+    createdAt:
       timestamp('createdAt')
       .defaultNow(),
-    done: 
+    done:
       boolean('done')
       .notNull()
       .default(false),
-  }, 
+  },
   (table) => [
     primaryKey({ columns: [table.id, table.userId] }),
   ],
 );
+
+export * from './auth-schema';
