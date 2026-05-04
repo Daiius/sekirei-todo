@@ -4,6 +4,8 @@ import { cors } from 'hono/cors'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod/v4'
 
+import { getGitHubAccountId } from 'database/db/lib'
+
 import {
   addTask,
   deleteTask,
@@ -15,6 +17,9 @@ import {
 import { auth } from './auth'
 
 type AuthVariables = {
+  // session.user.id (better-auth UUID) から account テーブル経由で解決した
+  // GitHub の numeric id。tasks.userId / projects.userId はこの値を保持する。
+  userId: string;
   user: {
     id: string;
     name: string;
@@ -40,12 +45,21 @@ app.use('*', cors({
 // better-auth の sign-in / callback / session 等をマウント
 app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw))
 
-// /tasks 以下は session 必須
+// /tasks 以下は session 必須 + GitHub account 紐付け必須
 app.use('/tasks/*', async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
   if (!session) {
     return c.body(null, 401)
   }
+
+  // tasks.userId は GitHub の numeric id を保持しているので、session の user.id
+  // (better-auth UUID) を account 経由で GitHub id に解決する。
+  const githubAccountId = await getGitHubAccountId(session.user.id)
+  if (!githubAccountId) {
+    return c.body(null, 401)
+  }
+
+  c.set('userId', githubAccountId)
   c.set('user', session.user)
   c.set('session', session.session)
   await next()
@@ -53,8 +67,7 @@ app.use('/tasks/*', async (c, next) => {
 
 const route = app
   .get('/tasks', async c => {
-    const userId = c.var.user.id
-    const result = await getTasks(userId)
+    const result = await getTasks(c.var.userId)
 
     return result.success
       ? c.json(result.data, 200)
@@ -71,7 +84,7 @@ const route = app
       z.object({ taskId: z.coerce.number() }),
     ),
     async c => {
-      const userId = c.var.user.id
+      const userId = c.var.userId
       const { taskId } = c.req.valid('param')
       const updatedTask = c.req.valid('json')
 
@@ -90,10 +103,9 @@ const route = app
     '/tasks',
     zValidator('json', NewTaskSchema),
     async c => {
-      const userId = c.var.user.id
       const newTask = c.req.valid('json')
 
-      const result = await addTask(newTask, userId)
+      const result = await addTask(newTask, c.var.userId)
 
       return result.success
         ? c.json(result.data, 200)
@@ -104,9 +116,8 @@ const route = app
     '/tasks/:taskId',
     zValidator('param', z.object({ taskId: z.coerce.number() })),
     async c => {
-      const userId = c.var.user.id
       const { taskId } = c.req.valid('param')
-      const result = await deleteTask(userId, taskId)
+      const result = await deleteTask(c.var.userId, taskId)
       return result.success
         ? c.body(null, 200)
         : c.body(null, result.error.statusCode)

@@ -15,8 +15,9 @@ const client = await mysql.createConnection({
 const db = drizzle({ client });
 
 const testUserId = process.env.TEST_USER_ID ?? 'test-user-001';
-const testGitHubId = process.env.TEST_GITHUB_ID;
+const testGitHubId = process.env.TEST_GITHUB_ID || undefined;
 
+// better-auth の user (FK 先) は常に作っておく。
 await db.insert(user).values([{
   id: testUserId,
   name: 'Test User',
@@ -24,9 +25,8 @@ await db.insert(user).values([{
   emailVerified: true,
 }]).onDuplicateKeyUpdate({ set: { name: 'Test User' } });
 
-// TEST_GITHUB_ID が設定されていれば、その GitHub アカウントを testUser に紐付ける。
-// これで GitHub OAuth ログイン時に better-auth が新規 user を作らずこの user を使うので、
-// seed したタスクがログイン後にそのまま見える。
+// TEST_GITHUB_ID があればそれを testUser に紐付ける。GitHub OAuth ログイン時に
+// better-auth が新規 user を作らずこの user を使うので、seed タスクが見える。
 if (testGitHubId) {
   const existingAccount = await db
     .select({ id: account.id })
@@ -48,20 +48,25 @@ if (testGitHubId) {
   }
 }
 
+// tasks.userId は GitHub の numeric id を保持する設計。
+// TEST_GITHUB_ID が無い場合はログインしても所有者が一致しないので、
+// シード用途として testUserId を入れておく (dev で DB を覗くとき用)。
+const ownerId = testGitHubId ?? testUserId;
+
 const existingTask = await db
   .select({ id: tasks.id })
   .from(tasks)
-  .where(eq(tasks.userId, testUserId))
+  .where(eq(tasks.userId, ownerId))
   .limit(1);
 
 if (existingTask.length === 0) {
   await db.insert(tasks).values([{
-    userId: testUserId,
+    userId: ownerId,
     description: 'this is a test task!',
   }]);
-  console.log(`Inserted test task for ${testUserId}`);
+  console.log(`Inserted test task for ${ownerId}`);
 } else {
-  console.log(`Test data for ${testUserId} already exists, skipping seed`);
+  console.log(`Test data for ${ownerId} already exists, skipping seed`);
 }
 
 await client.end();

@@ -7,7 +7,11 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core';
 
-import { user } from './auth-schema';
+// tasks.userId / projects.userId は better-auth の user.id (UUID) ではなく、
+// `account.accountId` (GitHub の numeric id, providerId='github') を保持する。
+// 旧 next-auth 時代のデータ (numeric id) をそのまま継承するため。
+// FK は張らない: account.accountId は UNIQUE ではなく、別 provider との混在も
+// あり得るため。アプリ層で session → account 経由に解決する。
 
 export const projects = mysqlTable(
   'Projects',
@@ -18,8 +22,7 @@ export const projects = mysqlTable(
       .notNull(),
     userId:
       varchar('userId', { length: 36 })
-      .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
+      .notNull(),
     createdAt:
       timestamp('createdAt')
       .defaultNow(),
@@ -37,8 +40,7 @@ export const tasks = mysqlTable(
       .notNull().primaryKey(),
     userId:
       varchar('userId', { length: 36 })
-      .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
+      .notNull(),
     projectId:
       varchar('projectId', { length: 256 })
       .references(() => projects.id),
