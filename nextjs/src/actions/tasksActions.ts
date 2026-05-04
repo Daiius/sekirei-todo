@@ -1,103 +1,80 @@
 'use server'
 
-import { auth } from '../auth';
+import { headers as nextHeaders } from 'next/headers';
 
 import type { AppType } from 'server-ts'
 import { hc, InferRequestType } from 'hono/client'
 
-const client = hc<AppType>(
-  process.env.API_URL!, 
-  {
+const apiUrl = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? '';
+
+// 型推論専用の client。実際の HTTP 呼び出しには使わないので URL/fetch は適当。
+const typedClient = hc<AppType>(apiUrl);
+
+/**
+ * server-ts に対するクライアント。
+ * better-auth が server-ts 側にあるため、リクエストごとに browser/Next.js が
+ * 受け取ったクッキーをそのまま転送して session を成立させる。
+ */
+const makeClient = async () => {
+  const cookie = (await nextHeaders()).get('cookie') ?? '';
+  return hc<AppType>(apiUrl, {
     fetch: async (url: RequestInfo | URL, init?: RequestInit) => {
-      const headers = new Headers(init?.headers)
-      headers.set('Authorization', `Bearer ${process.env.API_KEY}`)
-      return await fetch(url, { ...init, headers })
-    }
-  }
-)
+      const headers = new Headers(init?.headers);
+      if (cookie) headers.set('cookie', cookie);
+      return await fetch(url, { ...init, headers });
+    },
+  });
+};
 
 export const getTasks = async () => {
-  const session = await auth()
-  const userId = session?.user?.id
-  if (userId == null) {
-    console.error(`error @ getTasks: not authorized!`)
-    return []
-  }
-
-  const result = await client.users[':userId'].tasks.$get({ param: { userId } }) 
+  const client = await makeClient();
+  const result = await client.tasks.$get();
   if (!result.ok) {
-    console.error(`error @ getTasks: code=${result.status}`)
-    return []
+    if (result.status !== 401) {
+      console.error(`error @ getTasks: code=${result.status}`);
+    }
+    return [];
   }
-
-  return await result.json()
+  return await result.json();
 }
 
-const updateTaskApi = client.users[':userId'].tasks[':taskId'].$patch
-type UpdateTaskArg = Omit<
-  InferRequestType<typeof updateTaskApi>['json'],
-  'userId'
->
+type UpdateTaskArg = InferRequestType<typeof typedClient.tasks[':taskId']['$patch']>['json'];
 
 export const updateTask = async (updatedTask: UpdateTaskArg) => {
-  const session = await auth()
-  const userId = session?.user?.id
-  if (userId == null) {
-    console.error('error @ updateTask: not authorized')
-    return undefined
-  }
-
-  console.log('updatedTask: ', updatedTask)
-
-  const result = await updateTaskApi({ 
-    json: { ...updatedTask, userId },
-    param: { 
-      taskId: updatedTask.id.toString(),
-      userId: userId,
-    } 
-  })
+  const client = await makeClient();
+  const result = await client.tasks[':taskId'].$patch({
+    json: updatedTask,
+    param: { taskId: updatedTask.id.toString() },
+  });
 
   if (!result.ok) {
-    console.error(`error @ updateTask: code=${result.status} ${result.statusText}`)
-    return undefined
+    console.error(`error @ updateTask: code=${result.status} ${result.statusText}`);
+    return undefined;
   }
 
-  return await result.json()
+  return await result.json();
 }
 
-const addTaskApi = client.users[':userId'].tasks.$post
-type AddTaskArg = InferRequestType<typeof addTaskApi>['json']
+type AddTaskArg = InferRequestType<typeof typedClient.tasks['$post']>['json'];
 
 export const addTask = async (newTask: AddTaskArg) => {
-  const session = await auth()
-  const userId = session?.user?.id
-  if (userId == null) {
-    console.error('error @ addTask : not authorized')
-    return undefined
-  }
-  const result = await addTaskApi({ 
-    json: newTask, 
-    param: { userId, }
-  })
+  const client = await makeClient();
+  const result = await client.tasks.$post({ json: newTask });
 
   if (!result.ok) {
-    console.error(`error @ addTask: code=${result.status}`)
-    return undefined
+    console.error(`error @ addTask: code=${result.status}`);
+    return undefined;
   }
-  return await result.json()
+  return await result.json();
 }
 
-const deleteTaskApi = client.users[':userId'].tasks[':taskId'].$delete
 export const deleteTask = async (taskId: number) => {
-  const session = await auth()
-  const userId = session?.user?.id
-  if (userId == null) {
-    console.error('error @ deleteTask: not authorized')
-    return
-  }
-  const result = await deleteTaskApi({ param: { userId, taskId: taskId.toString() } })
+  const client = await makeClient();
+  const result = await client.tasks[':taskId'].$delete({
+    param: { taskId: taskId.toString() },
+  });
   if (!result.ok) {
-    console.error(`error @ deleteTask: code=${result.status}`)
-    return
+    console.error(`error @ deleteTask: code=${result.status}`);
+    return;
   }
 }

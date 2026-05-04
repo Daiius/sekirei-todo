@@ -1,0 +1,20 @@
+FROM node:22-slim
+
+WORKDIR /workspace
+
+RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
+
+# 依存解決はパッケージマニフェストだけで行うので、
+# ソース変更時にこの層がキャッシュされる
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY database/package.json ./database/
+COPY nextjs/package.json ./nextjs/
+COPY server-ts/package.json ./server-ts/
+COPY honox/package.json ./honox/
+
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+# コンテナ実行時の初期ソース。compose の develop.watch sync で随時更新される。
+COPY database ./database
+COPY server-ts ./server-ts

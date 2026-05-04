@@ -5,8 +5,7 @@ import clsx from 'clsx';
 
 import { useRouter } from 'next/navigation';
 
-import { signOut } from '@/actions/authenticate';
-
+import { authClient } from '@/lib/auth-client';
 
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
 import Button from '@/components/Button';
@@ -19,10 +18,10 @@ const SignOutButton: React.FC<
 }) => {
   const router = useRouter();
   return (
-    <Button 
+    <Button
       className={clsx('flex flex-row items-center', className)}
       onClick={async () => {
-        await signOut();
+        await authClient.signOut();
         router.refresh();
       }}
       {...props}
@@ -34,4 +33,3 @@ const SignOutButton: React.FC<
 }
 
 export default SignOutButton;
-

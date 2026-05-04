@@ -1,6 +1,6 @@
-import { Suspense } from 'react'
+import { Suspense } from 'react';
 
-import { auth } from '@/auth';
+import { getSession } from '@/lib/auth';
 import SignOutButton from '@/components/SignOutButton';
 
 export const Header = async () => {
@@ -15,7 +15,7 @@ export const Header = async () => {
 
 const HeaderStatus = async () => {
   'use cache: private'
-  const session = await auth();
+  const session = await getSession();
   return session?.user
     ? <>
         <div className='ms-auto mr-4'>
