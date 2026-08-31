@@ -9,3 +9,5 @@ nextjs/node_modules
 # .env.nextjs への symlink。コンテナには compose の env_file から渡すので不要
 # (COPY するとリンク切れになる)
 nextjs/.env.local
+# dev 専用スクリプト。本番イメージのビルドコンテキストには入れない。
+server-ts/scripts

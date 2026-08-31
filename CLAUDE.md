@@ -4,16 +4,19 @@
 
 ## 構成概要
 
+**ブラウザから見えるオリジンは 1 つだけ**（dev / remote / 本番いずれも同じ形）。
+
 ```
 [Browser]
    │
-   ├── HTTPS ──► [Next.js on Vercel]   (UI / Server Actions)
-   │              ・https://<frontend-domain>
-   │              ・proxy.ts で未ログインを / にリダイレクト
-   │              ・Server Action は cookie を server-ts に転送
-   │
-   └── HTTPS ──► [server-ts on VPS]    (Hono + better-auth + drizzle)
-                  ・https://<api-domain>:8443
+   └── HTTPS ──► [Next.js on Vercel]   https://<frontend-domain>
+                  ・/            → UI / Server Actions
+                  ・proxy.ts で未ログインを / にリダイレクト
+                  ・/api/*      → next.config.ts の rewrites() が
+                                   ${API_URL}/api/* へ素通し（Vercel のサーバ側 fetch）
+                            │
+                            ▼  ブラウザは踏まない。Vercel からのみ到達する裏口
+                  [server-ts on VPS]    https://<api-domain>:8443
                   ・/api/auth/*  → better-auth (GitHub OAuth)
                   ・/tasks/*     → タスク CRUD (session 必須)
                             │
@@ -21,7 +24,26 @@
                   [MySQL on VPS]
 ```
 
-cookie は parent domain (`.<root-domain>`) で発行されており、`<frontend-domain>` と `<api-domain>` のサブドメイン間で共有される。
+- **認証**（`SignInButton` / `SignOutButton` の `authClient`）はブラウザから走るが、
+  叩き先は自分と同じオリジンの `/api/auth/*` で、Vercel の rewrite が VPS へ転送する。
+- **タスク CRUD**（`nextjs/src/actions/tasksActions.ts`）と `getSession`
+  （`nextjs/src/lib/auth.ts`）は Server Action / サーバ側 fetch なので、
+  rewrite を通さず `API_URL` を直接使う。
+- API ドメインは**残る**（rewrite の宛先は絶対 URL なので公開 DNS 名と TLS 証明書が要る）。
+  役割が「ブラウザ向けの公開エンドポイント」から「Vercel だけが叩く裏口」に変わっただけ。
+  ⚠ ユーザー判断により、VPS への直アクセス対策（共有シークレットヘッダ等）は入れていない。
+
+同一オリジンなので cookie は **host-only + `SameSite=Lax`** で足りる。
+`COOKIE_DOMAIN` / `crossSubDomainCookies` / `CORS_ORIGINS` は**廃止**した。
+
+### 注意点
+
+- ブラウザ → Vercel → VPS と **1 ホップ増える**。`/api/*` は Vercel の関数を経由するので、
+  **関数の実行時間上限とレスポンスサイズ上限**が効く。大きいレスポンスや長時間処理を
+  `/api/*` に載せない。
+- rewrite は `beforeFiles` ではなく **`afterFiles`**（`rewrites()` が配列を返す形）。
+  つまり **Next.js 側に `app/api/**` を作るとそちらが優先され**、rewrite まで届かなくなる。
+  Next.js に API Route を足すときは server-ts のパスと衝突しないか確認すること。
 
 ## なぜ better-auth は server-ts 側にあるか
 
@@ -47,7 +69,7 @@ Next.js (Vercel) から VPS の MySQL へ直接接続できない。そのため
 - TypeScript 6.x
 - Hono 4.12.x + @hono/node-server v2
 - drizzle-orm / drizzle-kit 1.0-rc.1
-- better-auth 1.6.x
+- better-auth 1.7.x
 - MySQL 8.4
 
 ## 開発ワークフロー
@@ -89,10 +111,20 @@ database (3306) と server-ts (4000) はホストに publish しない。到達�
 - DB に直接つなぐ: `docker compose exec database mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"`
   (環境変数はコンテナ内に入っているのでそのまま参照できる)
 
-この「単一オリジンに畳む」構成のおかげで `COOKIE_DOMAIN` / `crossSubDomainCookies` は
-ローカル・リモートとも不要になる。ブラウザから見えるオリジンは compose の `PUBLIC_ORIGIN`
-1 つで、そこから `NEXT_PUBLIC_API_URL` / `NEXT_PUBLIC_APP_URL` / `BETTER_AUTH_URL` /
-`TRUSTED_ORIGINS` / `CORS_ORIGINS` に配られる (既定 `http://localhost:3000`)。
+この「単一オリジンに畳む」構成のおかげで `COOKIE_DOMAIN` / `crossSubDomainCookies` /
+`CORS_ORIGINS` はローカル・リモート・本番とも不要になった。
+ブラウザから見えるオリジンは compose の `PUBLIC_ORIGIN` 1 つで、そこから server-ts の
+`BETTER_AUTH_URL` / `TRUSTED_ORIGINS` に配られる (既定 `http://localhost:3000`)。
+
+ブラウザ側に公開オリジンを焼き込む必要はもう無いので、`NEXT_PUBLIC_API_URL` /
+`NEXT_PUBLIC_APP_URL` は compose から渡していない:
+
+- `nextjs/src/lib/auth-client.ts` は `createAuthClient()` を **baseURL 無指定**で呼ぶ。
+  better-auth はブラウザで `window.location.origin + /api/auth` に解決する。
+  ⚠ 相対パスの baseURL (`'/api/auth'`) は `new URL()` 検証に落ちて例外になるので渡さない。
+- `SignInButton` の `callbackURL` は **相対パス `/tasks`**。better-auth の
+  originCheck は callbackURL に限り相対パスを許可する。
+
 `.env.nextjs` / `.env.server-ts` に古い `localhost:4000` 系の値が残っていても compose の
 `environment:` が勝つ。**GitHub OAuth App の Authorization callback URL に
 `http://localhost:3000/api/auth/callback/github` を登録しておくこと。**
@@ -134,6 +166,58 @@ Cloudflare Access のポリシーは **Cloudflare Zero Trust ダッシュボー�
 - GitHub OAuth App の Authorization callback URL に
   `https://<dev-host>/api/auth/callback/github` を追加する (callback URL は複数登録できるので、
   ローカル用・本番用と併存させる)。
+
+## dev 用セッション発行スクリプト (GitHub OAuth を通さずログイン済みにする)
+
+E2E や手動確認で「ログイン済み `/tasks`」を作りたいとき、GitHub OAuth を毎回通す必要はない。
+`server-ts/scripts/devSession.ts` が既存 user に対して session を直接発行し、
+ブラウザに入れるべき cookie 値を出力する。
+
+```sh
+pnpm dev:session
+# → COOKIE=<token>.<署名> (URL エンコード済み)
+```
+
+- 実体は `docker compose exec server-ts pnpm --filter server-ts session`。**`pnpm dev` が
+  上がっている必要がある。**
+- 対象ユーザは `.env.database` の `TEST_USER_ID`。未設定ならエラーで停止する。
+  先に `pnpm db:seed` で user レコードを作っておくこと。
+- 🔒 **本番には入らない。** `Dockerfile.prod` は `server-ts/src` だけを COPY し、esbuild も
+  `src/index.ts` を入口にバンドルするのでこのファイルは本番イメージに含まれない。
+  `.dockerignore` にも `server-ts/scripts` を入れてあり、スクリプト自身も
+  `NODE_ENV=production` なら即 exit 1 する（多重防御）。
+
+### 仕組み
+
+- cookie 名は `advanced.cookiePrefix: 'sekirei'` により **`sekirei.session_token`**。
+  dev は http なので `__Secure-` prefix は付かない。
+- cookie 値は better-call の署名付き形式
+  `<token>.<HMAC-SHA256(BETTER_AUTH_SECRET, token) の base64>` を URL エンコードしたもの。
+- server-ts 側の `getSession` は署名検証と DB 照合しか見ない（`ipAddress` / `userAgent` は不問）。
+- `auth.api.*` に「既存 user へ無条件に session を発行する」公開 API が無いため、
+  `auth.$context` 経由で `internalAdapter.createSession` を使っている。
+
+### Playwright への注入
+
+セッション cookie は **`httpOnly`** なので `document.cookie` では設定できない。
+`page.context().addCookies()` を使う。
+
+```js
+async (page) => {
+  await page.context().addCookies([{
+    name: 'sekirei.session_token',
+    value: '<pnpm dev:session の出力（COOKIE= の右側をそのまま）>',
+    domain: 'localhost', path: '/', httpOnly: true, secure: false, sameSite: 'Lax',
+  }]);
+  await page.goto('http://localhost:3000/tasks');
+}
+```
+
+⚠ **`.env.database` の `TEST_GITHUB_ID` が空だと `/tasks/*` が 401 になる。**
+`tasks.userId` は GitHub の numeric id を保持する設計で、`getGitHubAccountId`
+(`database/db/lib.ts`) が `account` から解決できないと `undefined` を返し、
+`server-ts/src/app.ts` の `/tasks/*` ミドルウェアが 401 を返すため。session 自体は
+有効なのに 401 になるので紛らわしい。`TEST_GITHUB_ID` を設定してから `pnpm db:seed` すること。
 
 ## DB マイグレーション
 
@@ -192,8 +276,13 @@ docker compose run --rm --no-deps <server サービス> migrate.js
 | ファイル | 内容 | 主な利用元 |
 |---|---|---|
 | `.env.database` | MYSQL_*、DB_HOST、TEST_USER_ID、TEST_GITHUB_ID | database コンテナ / pnpm db:migrate / pnpm db:seed |
-| `.env.server-ts` | BETTER_AUTH_*、GITHUB_CLIENT_*、TRUSTED_ORIGINS、CORS_ORIGINS、COOKIE_DOMAIN | server-ts コンテナ |
-| `.env.nextjs` | API_URL、NEXT_PUBLIC_API_URL、NEXT_PUBLIC_APP_URL | Next.js dev / build (`nextjs/.env.local` symlink で参照) |
+| `.env.server-ts` | BETTER_AUTH_SECRET、GITHUB_CLIENT_* | server-ts コンテナ |
+| `.env.nextjs` | API_URL、NEXT_PUBLIC_APP_URL | Next.js dev / build (`nextjs/.env.local` symlink で参照) |
+
+⚠ `COOKIE_DOMAIN` / `CORS_ORIGINS` は**もう読まれない**（単一オリジン化で廃止）。
+`.env.server-ts` に残っていても無害だが、消しておくと混乱がない。
+`BETTER_AUTH_URL` / `TRUSTED_ORIGINS` / `CORS_ORIGINS` は dev では compose の
+`environment:` が `PUBLIC_ORIGIN` から配るので、env ファイル側の値は上書きされる。
 
 ## env 変更時の注意
 
@@ -208,6 +297,38 @@ docker compose run --rm --no-deps <server サービス> migrate.js
 - `.env.database` に `TEST_GITHUB_ID` を設定すると `database/seed.ts` がローカル DB にこれを自動でセットアップする
 
 ## 本番デプロイ概要
+
+本番も dev と同じ**単一オリジン**構成。ブラウザは `https://<frontend-domain>` しか叩かず、
+`/api/*` は Vercel の rewrite を経由して VPS の server-ts に届く。
+
+### Vercel (Next.js) に設定する env
+
+| 変数 | 値 | 用途 |
+|---|---|---|
+| `API_URL` | `https://<api-domain>:8443` | **rewrite の宛先**（`next.config.ts`）兼 Server Action / `getSession` の呼び先。絶対 URL 必須 |
+| `NEXT_PUBLIC_APP_URL` | （不要） | 単一オリジン化で参照コードが無くなった。残っていても害は無いが消してよい |
+| `NEXT_PUBLIC_API_URL` | （不要） | 同上。`next.config.ts` では `API_URL` 未設定時のフォールバックとしてのみ残っている |
+
+⚠ `NEXT_PUBLIC_*` は build 時にバンドルへ焼き込まれるので、変更したら redeploy が要る。
+`API_URL` はサーバ側でしか読まれないが、`rewrites()` は **build 時**に評価されるため
+やはり redeploy が必要。
+
+### VPS (server-ts) に設定する env
+
+| 変数 | 値 | 補足 |
+|---|---|---|
+| `BETTER_AUTH_URL` | `https://<frontend-domain>` | ⚠ **公開オリジン**。API ドメインではない。better-auth はここから OAuth の `redirect_uri` を組み立てる |
+| `TRUSTED_ORIGINS` | `https://<frontend-domain>` | 公開オリジン 1 つ |
+| `BETTER_AUTH_SECRET` | （秘密） | cookie 署名鍵 |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | （秘密） | GitHub OAuth App |
+| `CORS_ORIGINS` | （不要・空） | 同一オリジンなのでプリフライトが起きない。空なら `app.ts` は cors ミドルウェアを張らない |
+| `COOKIE_DOMAIN` | **廃止** | もうコードから参照していない。cookie は host-only + `SameSite=Lax` |
+
+API ドメイン (`https://<api-domain>:8443`) は**残す**。rewrite の宛先が絶対 URL なので
+公開 DNS 名と TLS 証明書が要る。ブラウザからは踏まれず、Vercel からのみ到達する。
+⚠ ユーザー判断により、VPS への直アクセスを塞ぐ共有シークレットヘッダ等は**入れていない**。
+
+### デプロイ手順
 
 - **Next.js**: GitHub の `main` ブランチを Vercel が自動デプロイ。env は Vercel ダッシュボードで設定
 - **server-ts**: ghcr.io にイメージを push して VPS 側で pull。手元から:
@@ -225,10 +346,18 @@ docker compose run --rm --no-deps <server サービス> migrate.js
 
 ## OAuth callback URL
 
-GitHub OAuth App の Authorization callback URL は **server-ts の URL に向ける**:
+単一オリジン化により、callback URL は **公開オリジン（Next.js 側）に向ける**。
+API ドメインには**向けない**（ブラウザは API ドメインを踏まないため）。
+
 ```
-https://<api-domain>:8443/api/auth/callback/github
+https://<frontend-domain>/api/auth/callback/github      # 本番
+https://<dev-host>/api/auth/callback/github             # リモート dev
+http://localhost:3000/api/auth/callback/github          # ローカル dev
 ```
+
+callback URL は複数登録できるので、上記を併存させてよい。
+better-auth は `BETTER_AUTH_URL` から `redirect_uri` を組み立てるので、
+**`BETTER_AUTH_URL` は公開オリジン**でなければならない（API ドメインではない）。
 
 ## 関連スクリプト
 
@@ -236,3 +365,4 @@ https://<api-domain>:8443/api/auth/callback/github
 - `dev` / `stop` / `down` / `logs`: docker compose 操作
 - `db:generate`: スキーマから SQL を生成 (`database/drizzle/` へ。DB には接続しない)
 - `db:migrate` / `db:seed`: 生成済み SQL の適用 / シード投入 (`docker compose exec server-ts` 経由)
+- `dev:session`: dev 用の session cookie 発行 (`server-ts/scripts/devSession.ts`)

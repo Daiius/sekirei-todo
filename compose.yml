@@ -38,7 +38,9 @@ services:
       # GitHub OAuth App の callback は <PUBLIC_ORIGIN>/api/auth/callback/github を登録する。
       BETTER_AUTH_URL: '${PUBLIC_ORIGIN:-http://localhost:3000}'
       TRUSTED_ORIGINS: '${PUBLIC_ORIGIN:-http://localhost:3000}'
-      CORS_ORIGINS: '${PUBLIC_ORIGIN:-http://localhost:3000}'
+      # 単一オリジンなのでプリフライトが発生せず CORS は不要。空を明示して
+      # .env.server-ts に残っている旧値を無効化する (app.ts は空なら cors を張らない)。
+      CORS_ORIGINS: ''
     command: pnpm dev
     # ホストには公開しない。ブラウザは nextjs の /api rewrite 経由で、
     # nextjs 自身 (Server Action / getSession) は compose 網内の server-ts:4000 で届く。
@@ -79,10 +81,10 @@ services:
       # Server Action / getSession もこの URL を直接使う (.env.nextjs の
       # localhost:4000 はコンテナ内からは到達できないので必ず上書きする)。
       API_URL: 'http://server-ts:4000'
-      # ブラウザから見えるオリジン。server-ts はホストに公開しないので、
-      # better-auth の client も sign-in の callbackURL もここに向ける。
-      NEXT_PUBLIC_API_URL: '${PUBLIC_ORIGIN:-http://localhost:3000}'
-      NEXT_PUBLIC_APP_URL: '${PUBLIC_ORIGIN:-http://localhost:3000}'
+      # NEXT_PUBLIC_API_URL / NEXT_PUBLIC_APP_URL は渡さない。
+      # 単一オリジン化で auth-client は baseURL 無指定 (= window.location.origin)、
+      # signIn の callbackURL は相対パスになり、ブラウザ側に公開オリジンを
+      # 焼き込む必要が無くなったため。
       # リモート公開時のみ設定 (next.config.ts が allowedDevOrigins を条件付与)。
       # ローカルは localhost (= リモート差分なし)。
       DEV_ALLOWED_HOST: '${DEV_ALLOWED_HOST:-localhost}'

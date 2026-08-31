@@ -5,6 +5,8 @@ import { db } from 'database/db';
 export const auth = betterAuth({
   appName: 'sekirei-todo',
   database: drizzleAdapter(db, { provider: 'mysql' }),
+  // 公開オリジン (= ブラウザから見える Next.js のオリジン) を 1 つ渡す。単一オリジン化
+  // 後も、callbackURL / redirect 先の検証にこの一覧が使われるので引き続き必要。
   trustedOrigins:
     process.env.TRUSTED_ORIGINS?.split(',').map((s) => s.trim()) ?? [],
   socialProviders: {
@@ -22,16 +24,10 @@ export const auth = betterAuth({
   },
   advanced: {
     cookiePrefix: 'sekirei',
-    // 本番で Next.js (Vercel) と server-ts (VPS) が同一親ドメインのサブドメインなら
-    // COOKIE_DOMAIN にその親ドメイン (例: .example.com) を渡して cookie を親ドメインで発行する。
-    // 開発環境ではどちらも localhost なので未設定で OK (port 違いでも cookie は共有される)。
-    ...(process.env.COOKIE_DOMAIN
-      ? {
-          crossSubDomainCookies: {
-            enabled: true,
-            domain: process.env.COOKIE_DOMAIN,
-          },
-        }
-      : {}),
+    // COOKIE_DOMAIN / crossSubDomainCookies は廃止した。
+    // ブラウザから見えるオリジンは Next.js の 1 つだけで、server-ts へは Next.js の
+    // rewrites() 経由 (サーバ間) でしか到達しない = cookie は常に同一オリジンで往復する。
+    // よって host-only + SameSite=Lax の既定で足り、親ドメイン発行は不要になった。
+    // (dev/remote/本番いずれも同じ。詳細は CLAUDE.md「構成概要」参照)
   },
 });

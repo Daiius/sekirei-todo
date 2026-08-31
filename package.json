@@ -18,6 +18,7 @@
     "logs": "docker compose logs -f",
     "db:generate": "pnpm --filter database generate",
     "db:migrate": "docker compose exec server-ts pnpm --filter database migrate",
-    "db:seed": "docker compose exec server-ts pnpm --filter database seed"
+    "db:seed": "docker compose exec server-ts pnpm --filter database seed",
+    "dev:session": "docker compose exec server-ts pnpm --filter server-ts session"
   }
 }

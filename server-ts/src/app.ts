@@ -35,12 +35,21 @@ type AuthVariables = {
 export const app = new Hono<{ Variables: AuthVariables }>()
 
 app.use('*', logger())
-app.use('*', cors({
-  origin: process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()) ?? [],
-  credentials: true,
-  allowHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-}))
+
+// 単一オリジン構成では CORS は不要。ブラウザは Next.js のオリジンだけを叩き、
+// server-ts へは Next.js の rewrites() 経由 (サーバ間) で届くのでプリフライトが
+// そもそも発生しない。**通常 CORS_ORIGINS は空でよい。**
+// server-ts を別オリジンから直接叩く一時的な検証をしたいときだけ値を入れる。
+const corsOrigins =
+  process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) ?? []
+if (corsOrigins.length > 0) {
+  app.use('*', cors({
+    origin: corsOrigins,
+    credentials: true,
+    allowHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  }))
+}
 
 // better-auth の sign-in / callback / session 等をマウント
 app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw))
