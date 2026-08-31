@@ -11,14 +11,14 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "drizzle-kit": "catalog:",
-    "tsx": "^4.21.0",
+    "tsx": "^4.23.12",
     "typescript": "catalog:"
   },
   "dependencies": {
-    "better-auth": "^1.6.9",
+    "better-auth": "^1.7.2",
     "drizzle-orm": "catalog:",
     "drizzle-zod": "catalog:",
-    "mysql2": "^3.15.2",
+    "mysql2": "^3.24.2",
     "zod": "catalog:"
   }
 }
