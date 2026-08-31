@@ -269,6 +269,22 @@ docker compose run --rm --no-deps <server サービス> migrate.js
 ⚠ 本番イメージは distroless（`ENTRYPOINT` が暗黙に `node`）なので、**渡すのはパスだけ**。
 `node /app/migrate.js` と書くと node に node を渡すことになり動かない。
 
+### ⚠ 本番 DB への初回適用だけはベースライン化が要る
+
+init マイグレーションは `Projects` / `Tasks` も `CREATE TABLE` する。この 2 テーブルと実データが
+既にある本番 DB に対して上の `migrate.js` をそのまま流すと、**1 文目の "table already exists" で
+落ちる**。既存データには触れず、init との差分だけを当てて `__drizzle_migrations` に init を
+適用済みとして刻む**ベースライン化**を先に一度だけ行う（ダンプして作り直す案は採らない）。
+
+これは本番運用に関わるので**手順とスクリプトはリポジトリに置いていない**。手元の
+`.claude/local/`（gitignore 済み）を参照すること:
+
+- `.claude/local/prod-db-baseline.sh` — 既定は `--check`（DB を変更せず現状と実行計画を表示）。
+  適用は `--apply`。冪等で、接続情報は環境変数から受け取る
+- `.claude/local/prod-db-baseline.md` — 適用手順と切り戻し
+
+ベースライン化が済めば以降は上の通常経路に戻る。⚠ 一度きりの移行用で、日常の適用には使わない。
+
 ## env ファイル構成 (gitignored)
 
 サービス単位で分割。リポジトリには無いので clone 直後は手元で作成が必要。
@@ -343,6 +359,8 @@ API ドメイン (`https://<api-domain>:8443`) は**残す**。rewrite の宛先
   docker compose run --rm --no-deps <server サービス> migrate.js
   ```
   適用する SQL は `docker build` した時点のイメージに焼き込まれているので、**先に `pnpm db:generate` の生成物を commit し、その commit からビルドしたイメージを push しておくこと**
+  ⚠ **本番 DB への初回適用だけは、先にベースライン化が要る**（→ 上の「DB マイグレーション」節。
+  スクリプトと手順は `.claude/local/`）
 
 ## OAuth callback URL
 
