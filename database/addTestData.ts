@@ -17,6 +17,10 @@ const db = drizzle({ client });
 const testUserId = process.env.TEST_USER_ID ?? 'test-user-001';
 const testGitHubId = process.env.TEST_GITHUB_ID || undefined;
 
+// better-auth 1.7 から account の identity は (issuer, accountId) にスコープされる。
+// 独自 issuer を持たない OAuth provider には `local:oauth:<providerId>` が入る。
+const githubIssuer = 'local:oauth:github';
+
 // better-auth の user (FK 先) は常に作っておく。
 await db.insert(user).values([{
   id: testUserId,
@@ -32,7 +36,7 @@ if (testGitHubId) {
     .select({ id: account.id })
     .from(account)
     .where(and(
-      eq(account.providerId, 'github'),
+      eq(account.issuer, githubIssuer),
       eq(account.accountId, testGitHubId),
     ))
     .limit(1);
@@ -40,6 +44,7 @@ if (testGitHubId) {
   if (existingAccount.length === 0) {
     await db.insert(account).values([{
       id: randomUUID(),
+      issuer: githubIssuer,
       accountId: testGitHubId,
       providerId: 'github',
       userId: testUserId,
