@@ -28,6 +28,6 @@ export const auth = betterAuth({
     // ブラウザから見えるオリジンは Next.js の 1 つだけで、server-ts へは Next.js の
     // rewrites() 経由 (サーバ間) でしか到達しない = cookie は常に同一オリジンで往復する。
     // よって host-only + SameSite=Lax の既定で足り、親ドメイン発行は不要になった。
-    // (dev/remote/本番いずれも同じ。詳細は CLAUDE.md「構成概要」参照)
+    // (dev/remote/本番いずれも同じ。詳細は AGENTS.md「技術スタック / 構成」参照)
   },
 });

@@ -3,7 +3,7 @@
 //   pnpm dev:session          # = docker compose exec server-ts pnpm session
 //
 // 出力された COOKIE=... の値を Playwright の addCookies に流し込むと、
-// ブラウザ側がログイン済み状態になる（使い方は CLAUDE.md 参照）。
+// ブラウザ側がログイン済み状態になる（使い方は AGENTS.md 参照）。
 //
 // 🔒 本番では絶対に動かさない。Dockerfile.prod は server-ts/src だけを COPY し、
 //    esbuild も src/index.ts を入口にバンドルするのでこのファイルは本番像に入らないが、
