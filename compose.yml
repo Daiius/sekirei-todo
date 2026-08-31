@@ -96,7 +96,9 @@ services:
       - server-ts
     develop:
       watch:
-        - action: sync+restart
+        # next dev は自前でファイル変更を拾って Fast Refresh するので sync のみ。
+        # sync+restart にすると保存のたびに dev サーバが落ちて Fast Refresh が効かない。
+        - action: sync
           path: ./nextjs
           target: /workspace/nextjs
           ignore:
