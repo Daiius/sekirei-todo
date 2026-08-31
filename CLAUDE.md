@@ -61,7 +61,7 @@ pnpm install
 pnpm dev                      # docker compose up --build --watch (database + server-ts + nextjs)
                               # → http://localhost:3000
 
-pnpm db:migrate               # スキーマ適用 (.env.database 使用)
+pnpm db:migrate               # 生成済み SQL を適用 (稼働中の server-ts コンテナ内で実行)
 pnpm db:seed                  # テストデータ投入 (idempotent)
 
 # 後始末
@@ -135,6 +135,56 @@ Cloudflare Access のポリシーは **Cloudflare Zero Trust ダッシュボー�
   `https://<dev-host>/api/auth/callback/github` を追加する (callback URL は複数登録できるので、
   ローカル用・本番用と併存させる)。
 
+## DB マイグレーション
+
+**生成は `drizzle-kit generate`（dev 専用）、適用は drizzle-orm の `migrate()`。**
+`drizzle-kit push` は使わない（本番イメージに drizzle-kit を入れずに済み、dev と本番で
+適用経路が 1 本になる ＝ 本番で初めて走る経路が無い）。
+
+| ファイル | 役割 |
+|---|---|
+| `database/drizzle/<timestamp>_<name>/migration.sql` | 生成済み SQL。**リポジトリにコミットする** |
+| `database/migrate.ts` | 適用エントリ。⚠ **パッケージルート直下**（`migrationsFolder` を自ファイルからの相対 URL で解くため） |
+| `database/seed.ts` | シード投入エントリ（冪等） |
+| `database/esbuild.config.ts` | 上記 2 つを `dist/migrate.js` / `dist/seed.js` へバンドル |
+
+適用済みかどうかは drizzle 標準の `__drizzle_migrations` テーブルが持つので、何度流しても冪等。
+
+### スキーマを変えたときのワークフロー
+
+```sh
+# 1. database/db/*.ts を編集
+# 2. SQL を生成 (DB には接続しない)
+pnpm db:generate                       # = pnpm --filter database generate
+# 3. database/drizzle/<timestamp>_<name>/ の migration.sql と snapshot.json を目視して commit
+# 4. 適用
+pnpm db:migrate
+```
+
+⚠ **生成物を commit し忘れると本番で適用されない。** ここが `push` 時代との一番大きな違い。
+
+### dev での適用
+
+`pnpm db:migrate` / `pnpm db:seed` は稼働中の `server-ts` コンテナに `docker compose exec` して
+`database` ワークスペースのスクリプトを叩く（dev イメージはソース一式と tsx を持つ）。
+DB 接続情報は compose の `env_file: .env.database` で既にコンテナ内にあるので、
+ホスト側で env を source する必要はない。`pnpm dev` を先に上げておくこと
+（未起動なら `docker compose exec` がそのまま失敗する）。
+
+### 本番での適用
+
+migrate / seed は **server-ts と同じイメージに同梱**してある（適用する SQL とコードの
+バージョンが構造的に一致する）。使い捨てコンテナとして明示的に実行する
+——**起動時の自動適用はしない**（失敗時の挙動と、インスタンスを増やしたときの競合が読めなくなるため）。
+
+```sh
+# VPS 側、本番の compose がある場所で
+docker compose run --rm --no-deps <server サービス> migrate.js
+```
+
+⚠ 本番イメージは distroless（`ENTRYPOINT` が暗黙に `node`）なので、**渡すのはパスだけ**。
+`node /app/migrate.js` と書くと node に node を渡すことになり動かない。
+
 ## env ファイル構成 (gitignored)
 
 サービス単位で分割。リポジトリには無いので clone 直後は手元で作成が必要。
@@ -155,7 +205,7 @@ Cloudflare Access のポリシーは **Cloudflare Zero Trust ダッシュボー�
 - 旧 next-auth 時代は `tasks.userId` に GitHub の数値 ID を直接保存していた
 - 現在の better-auth は `user.id` (UUID 形式) を生成し、`account` テーブルで GitHub ID と紐付ける
 - 過去のタスクを救出したい場合は `account` レコードを手動で挿入して、login 時に既存 user.id にマップさせる必要がある
-- `.env.database` に `TEST_GITHUB_ID` を設定すると `addTestData.ts` がローカル DB にこれを自動でセットアップする
+- `.env.database` に `TEST_GITHUB_ID` を設定すると `database/seed.ts` がローカル DB にこれを自動でセットアップする
 
 ## 本番デプロイ概要
 
@@ -167,7 +217,11 @@ Cloudflare Access のポリシーは **Cloudflare Zero Trust ダッシュボー�
     -f server-ts/Dockerfile.prod .
   ```
   macOS ホスト → linux/amd64 ターゲットなので `--platform` 必須
-- **DB migration**: 本番 DB に対しては手元から SSH トンネル + 管理者権限ユーザで `drizzle-kit push` を直接呼ぶ。`pnpm db:migrate` は dev 用 env を内部で source するため本番には使わない
+- **DB migration**: イメージに同梱した `migrate.js` を VPS 側で使い捨てコンテナとして実行する。手元から SSH トンネルを掘って `drizzle-kit push` を叩く運用は廃止:
+  ```sh
+  docker compose run --rm --no-deps <server サービス> migrate.js
+  ```
+  適用する SQL は `docker build` した時点のイメージに焼き込まれているので、**先に `pnpm db:generate` の生成物を commit し、その commit からビルドしたイメージを push しておくこと**
 
 ## OAuth callback URL
 
@@ -180,4 +234,5 @@ https://<api-domain>:8443/api/auth/callback/github
 
 `package.json` (root):
 - `dev` / `stop` / `down` / `logs`: docker compose 操作
-- `db:migrate` / `db:seed`: ローカル DB へのスキーマ適用 / シード
+- `db:generate`: スキーマから SQL を生成 (`database/drizzle/` へ。DB には接続しない)
+- `db:migrate` / `db:seed`: 生成済み SQL の適用 / シード投入 (`docker compose exec server-ts` 経由)

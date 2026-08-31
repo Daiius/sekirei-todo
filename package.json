@@ -16,7 +16,8 @@
     "stop": "docker compose stop",
     "down": "docker compose down",
     "logs": "docker compose logs -f",
-    "db:migrate": "pnpm --filter database exec sh -c 'set -a && . ../.env.database && drizzle-kit push --force'",
-    "db:seed": "pnpm --filter database exec sh -c 'set -a && . ../.env.database && tsx addTestData.ts'"
+    "db:generate": "pnpm --filter database generate",
+    "db:migrate": "docker compose exec server-ts pnpm --filter database migrate",
+    "db:seed": "docker compose exec server-ts pnpm --filter database seed"
   }
 }

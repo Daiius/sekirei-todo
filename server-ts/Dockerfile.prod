@@ -16,15 +16,38 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 COPY server-ts/src ./server-ts/src
 COPY server-ts/tsconfig.json server-ts/esbuild.config.ts ./server-ts/
 COPY database/db ./database/db
+COPY database/tsconfig.json database/esbuild.config.ts database/migrate.ts database/seed.ts ./database/
+# 生成済み SQL。バンドルには入らない (migrator が実行時に fs で読む) が、
+# runtime へ COPY するために build ステージにも要る。
+COPY database/drizzle ./database/drizzle
 
 RUN pnpm --filter server-ts build
+# migrate / seed のエントリ (→ database/dist/{migrate,seed}.js)。
+# server と同じイメージに同梱することで、適用する SQL とコードのバージョンがずれない。
+RUN pnpm --filter database build
 
 
 # 実行ステージ。esbuild がバンドル済みなので node_modules 不要、index.js だけで動く。
+# ⚠ drizzle-kit は入れない。生成専用の dev ツールで、適用は drizzle-orm の migrator だけで完結する。
 FROM gcr.io/distroless/nodejs22-debian12
 
 WORKDIR /app
 
 COPY --from=build /workspace/server-ts/dist/index.js ./index.js
+
+# マイグレーション / seed は **使い捨てコンテナとして明示的に実行する**
+# (起動時の自動適用にはしない。失敗時の挙動とインスタンス増時の競合が読めなくなるため)。
+#
+#   docker compose run --rm --no-deps <server サービス> migrate.js
+#   docker compose run --rm --no-deps <server サービス> seed.js
+#
+# ⚠ distroless の ENTRYPOINT は node なので、command は **パスだけ**を書く
+#   (`["node", "/app/migrate.js"]` と書くと node に node を渡すことになり動かない)。
+COPY --from=build /workspace/database/dist/migrate.js ./migrate.js
+COPY --from=build /workspace/database/dist/seed.js    ./seed.js
+
+# 生成済みの SQL。**バンドルには含まれない** (migrator が実行時に fs で読むため)。
+# ⚠ ここを忘れると、マイグレーションを流すまで気づけない。
+COPY --from=build /workspace/database/drizzle ./drizzle
 
 CMD ["index.js"]
