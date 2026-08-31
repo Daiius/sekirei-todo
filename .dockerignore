@@ -4,4 +4,8 @@ src/stories/
 .drizzle/
 node_modules
 database/drizzle.config.ts
-
+nextjs/.next
+nextjs/node_modules
+# .env.nextjs への symlink。コンテナには compose の env_file から渡すので不要
+# (COPY するとリンク切れになる)
+nextjs/.env.local

@@ -52,26 +52,88 @@ Next.js (Vercel) から VPS の MySQL へ直接接続できない。そのため
 
 ## 開発ワークフロー
 
-DB と server-ts はコンテナ、Next.js はホストで動かす。
+database / server-ts / nextjs の 3 つとも compose で動かす。
 
 ```sh
 # 初回 / lockfile 変更時のみ
 pnpm install
 
-# 別ターミナルで:
-pnpm dev                      # docker compose watch (db + server-ts)
+pnpm dev                      # docker compose up --build --watch (database + server-ts + nextjs)
+                              # → http://localhost:3000
 
 pnpm db:migrate               # スキーマ適用 (.env.database 使用)
 pnpm db:seed                  # テストデータ投入 (idempotent)
-
-# Next.js はホストで:
-cd nextjs && pnpm dev         # localhost:3000
 
 # 後始末
 pnpm stop                     # コンテナ停止
 pnpm down                     # コンテナ + ネットワーク削除
 docker compose down -v        # mysql-data ボリュームも削除して完全リセット
 ```
+
+`pnpm dev` は `docker compose watch` ではなく `docker compose up --build --watch` を使う。
+`watch` 単体だとコンテナが起動しないことがあったため。
+
+### ホストに公開するポートは nextjs の 1 本だけ
+
+```
+[browser] ─▶ ${WEB_BIND:-3000} ─▶ nextjs ─▶ server-ts:4000 ─▶ database:3306
+                                    /api/* を rewrite      (どちらも compose 網内のみ)
+```
+
+database (3306) と server-ts (4000) はホストに publish しない。到達経路は次のとおり:
+
+- ブラウザ → server-ts: `next.config.ts` の `rewrites()` が `/api/:path*` を `${API_URL}`
+  (compose では `http://server-ts:4000`) へ素通しする。better-auth は `/api/auth/*` を
+  その path のまま受けるので書き換えない。
+- Next.js (Server Action / `getSession`) → server-ts: compose 網内で `server-ts:4000` に直接。
+- DB に直接つなぐ: `docker compose exec database mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"`
+  (環境変数はコンテナ内に入っているのでそのまま参照できる)
+
+この「単一オリジンに畳む」構成のおかげで `COOKIE_DOMAIN` / `crossSubDomainCookies` は
+ローカル・リモートとも不要になる。ブラウザから見えるオリジンは compose の `PUBLIC_ORIGIN`
+1 つで、そこから `NEXT_PUBLIC_API_URL` / `NEXT_PUBLIC_APP_URL` / `BETTER_AUTH_URL` /
+`TRUSTED_ORIGINS` / `CORS_ORIGINS` に配られる (既定 `http://localhost:3000`)。
+`.env.nextjs` / `.env.server-ts` に古い `localhost:4000` 系の値が残っていても compose の
+`environment:` が勝つ。**GitHub OAuth App の Authorization callback URL に
+`http://localhost:3000/api/auth/callback/github` を登録しておくこと。**
+
+## リモート dev 環境 (pnpm dev:remote)
+
+常駐マシン上の dev スタックを Cloudflare Tunnel + Access 越しに手元ブラウザから使う構成。
+**リモート専用の compose ファイルは持たない。** 差分は `.env.remote` の環境変数だけに集約する。
+
+```sh
+cp .env.remote.example .env.remote   # 値を埋める (.env.remote は gitignore 対象)
+pnpm dev:remote          # 起動 (foreground・--build --watch)
+pnpm dev:remote:logs     # 別ターミナルでログ追尾 (任意)
+pnpm dev:remote:down     # 停止 (mysql-data volume は残す)
+```
+
+ローカルとの差は 3 変数のみ:
+
+| 変数 | ローカル既定 | remote | 効かせ方 |
+|---|---|---|---|
+| `WEB_BIND` | `3000` (全 IF) | `127.0.0.1:8701` | compose の `ports: '${WEB_BIND:-3000}:3000'` |
+| `DEV_ALLOWED_HOST` | `localhost` | `<dev-host>` | `next.config.ts` が `allowedDevOrigins` を条件付与 |
+| `PUBLIC_ORIGIN` | `http://localhost:3000` | `https://<dev-host>` | compose が nextjs / server-ts の URL 系 env に配る |
+
+Next.js の HMR は同一オリジンの WebSocket なので、トンネルが wss を通せば追加設定は不要。
+
+### cloudflared 側 (リポジトリには持たない)
+
+**cloudflared は compose 外**で動かす (systemd 常駐・token 起動)。ingress ルールと
+Cloudflare Access のポリシーは **Cloudflare Zero Trust ダッシュボード側だけで管理し、
+リポジトリにもホストにも設定ファイルを置かない。** 実ドメイン名もリポジトリには書かない
+(このドキュメントでは `<dev-host>` と表記する)。
+
+ダッシュボードで設定すること:
+
+- Tunnel の public hostname `<dev-host>` の ingress 向き先を **`http://127.0.0.1:8701`** にする
+  (= `.env.remote` の `WEB_BIND` のポート)。
+- Access のポリシーで許可メールを限定する。
+- GitHub OAuth App の Authorization callback URL に
+  `https://<dev-host>/api/auth/callback/github` を追加する (callback URL は複数登録できるので、
+  ローカル用・本番用と併存させる)。
 
 ## env ファイル構成 (gitignored)
 

@@ -8,8 +8,8 @@ services:
       TZ: 'Asia/Tokyo'
       LANG: 'ja_JP.UTF-8'
       DB_HOST: database
-    ports:
-      - "3306:3306"
+    # ホストには公開しない (compose 網内からのみ到達)。ホストから DB を触るときは
+    # `docker compose exec database mysql ...` / `pnpm db:migrate` / `pnpm db:seed`。
     volumes:
       - mysql-data:/var/lib/mysql
     cap_add:
@@ -32,9 +32,18 @@ services:
       - .env.server-ts
     environment:
       DB_HOST: database
+      # 単一オリジン配信: better-auth はブラウザからは nextjs の /api rewrite 経由
+      # (同一オリジン) でしか叩かれないので、自分の公開 URL は nextjs のオリジンと同じ。
+      # ローカル既定は http://localhost:3000、リモートは .env.remote の PUBLIC_ORIGIN。
+      # GitHub OAuth App の callback は <PUBLIC_ORIGIN>/api/auth/callback/github を登録する。
+      BETTER_AUTH_URL: '${PUBLIC_ORIGIN:-http://localhost:3000}'
+      TRUSTED_ORIGINS: '${PUBLIC_ORIGIN:-http://localhost:3000}'
+      CORS_ORIGINS: '${PUBLIC_ORIGIN:-http://localhost:3000}'
     command: pnpm dev
-    ports:
-      - "4000:4000"
+    # ホストには公開しない。ブラウザは nextjs の /api rewrite 経由で、
+    # nextjs 自身 (Server Action / getSession) は compose 網内の server-ts:4000 で届く。
+    expose:
+      - "4000"
     depends_on:
       database:
         condition: service_healthy
@@ -52,6 +61,48 @@ services:
           target: /workspace/database
           ignore:
             - node_modules/
+            - "*.tsbuildinfo"
+        - action: rebuild
+          path: pnpm-lock.yaml
+
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: sekirei-todo-nextjs
+    working_dir: /workspace/nextjs
+    env_file:
+      - .env.nextjs
+    environment:
+      # 同一オリジン配信: ブラウザは常に自分と同じオリジンの /api を叩き、
+      # next.config.ts の rewrites が compose 網内の server-ts へ素通しで転送する。
+      # Server Action / getSession もこの URL を直接使う (.env.nextjs の
+      # localhost:4000 はコンテナ内からは到達できないので必ず上書きする)。
+      API_URL: 'http://server-ts:4000'
+      # ブラウザから見えるオリジン。server-ts はホストに公開しないので、
+      # better-auth の client も sign-in の callbackURL もここに向ける。
+      NEXT_PUBLIC_API_URL: '${PUBLIC_ORIGIN:-http://localhost:3000}'
+      NEXT_PUBLIC_APP_URL: '${PUBLIC_ORIGIN:-http://localhost:3000}'
+      # リモート公開時のみ設定 (next.config.ts が allowedDevOrigins を条件付与)。
+      # ローカルは localhost (= リモート差分なし)。
+      DEV_ALLOWED_HOST: '${DEV_ALLOWED_HOST:-localhost}'
+    # コンテナ外から届かせるため 0.0.0.0 で listen する。
+    command: pnpm dev --hostname 0.0.0.0
+    # ローカルは 3000 を公開。リモートは .env.remote の WEB_BIND=127.0.0.1:<port> で
+    # cloudflared 向けに 127.0.0.1 の 1 ポートだけ公開する。
+    ports:
+      - '${WEB_BIND:-3000}:3000'
+    depends_on:
+      - server-ts
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./nextjs
+          target: /workspace/nextjs
+          ignore:
+            - node_modules/
+            - .next/
+            - .env.local
             - "*.tsbuildinfo"
         - action: rebuild
           path: pnpm-lock.yaml
