@@ -15,6 +15,15 @@ const isRemote = !!allowedHost && allowedHost !== 'localhost';
 const nextConfig = {
   cacheComponents: true,
 
+  experimental: {
+    // Turbopack のキャッシュをディスクに退避し、スナップショット保存の都度
+    // 可能な限りメモリから追い出す。next dev 専用 (next build には効かない)。
+    // 既定は 'auto' (メモリ圧迫を見てから追い出す) で 16.3 から有効だが、
+    // 常駐マシンで dev:remote を立てっぱなしにするので 'full' で積極的に削る。
+    // 再ビルドが遅いと感じたら 'auto' に戻す。
+    turbopackMemoryEviction: 'full',
+  },
+
   // リモートのみ: 別オリジン (公開ホスト名) からの dev リクエストを許可する。
   // HMR は同一オリジンの WebSocket なので、前段が wss を通せば追加設定は不要。
   ...(isRemote ? { allowedDevOrigins: [allowedHost] } : {}),
