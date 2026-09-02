@@ -1,52 +1,77 @@
 # 次に行う作業
 
-last updated: 2026-09-01
+last updated: 2026-09-03
 
-## 本番リリース確定までの残作業
+## 本番リリース（単一オリジン化）— 完了
 
-### 1. 本番 DB スキーマ適用
+2026-09-03 に本番へ反映済み。PR #57 を squash マージし、Vercel / VPS / 本番 DB とも
+新構成で稼働している。以降の作業は下の「リリース後の宿題」を参照。
 
-DB マイグレーションは `drizzle-kit push` から「生成済み SQL + drizzle-orm の `migrate()`」方式へ
-移行済み（→ `AGENTS.md` の「DB マイグレーション」節）。日常の適用はイメージに同梱した
-`migrate.js` を使い捨てコンテナとして流すだけで済む。
+作業の記録:
 
-⚠ ただし **本番 DB への初回適用だけは、そのままでは通らない。**
-init マイグレーションは `Projects` / `Tasks` も `CREATE TABLE` するため、その 2 テーブルと
-実データが既にある本番 DB では 1 文目で落ちる。既存データには触れず、差分だけを当てて
-`__drizzle_migrations` に init を適用済みとして刻む**ベースライン化**が要る
-（ダンプして作り直す案は採らない）。
+- 本番 DB を**ベースライン化**（`__drizzle_migrations` に init を適用済みとして記録し、
+  既存の `Projects` / `Tasks` は FK と列型だけを init に合わせた）
+- server-ts イメージを ghcr.io へ push（`:latest` と `:<short sha>` の 2 タグ）
+- VPS の env を更新（`BETTER_AUTH_URL` / `TRUSTED_ORIGINS` を公開オリジンへ、
+  `COOKIE_DOMAIN` と `CORS_ORIGINS` を削除）して `up -d --force-recreate`
+- GitHub App に公開オリジンの callback URL を追加
 
-ベースライン化スクリプトと手順は、本番運用に関わるためリポジトリには置いていない。
-手元の `.claude/local/` を参照すること（gitignore 済み）:
+### ⚠ 移行で踏んだ落とし穴（次に似た移行をするとき用）
 
-- `.claude/local/prod-db-baseline.sh` — ベースライン化スクリプト（既定は `--check` で DB を変更しない）
-- `.claude/local/prod-db-baseline.md` — 適用手順・切り戻し
+- **ベースライン化スクリプトは認証テーブルを「無ければ作る」だけで、旧形式で既に
+  存在するテーブルは素通りする。** 本番の `account` が better-auth 1.7 より前の形
+  （`issuer` 列が無く `account_id` が `text`）で残っており、テーブルの存在確認だけでは
+  気づけなかった。`SHOW CREATE TABLE` まで見て init と突き合わせること。
+  1.7 は account の identity を `(issuer, accountId)` にスコープするので、この列と
+  複合 unique index が無いとログイン時に落ちる。
+- **GitHub App が 2 つあり、VPS の `GITHUB_CLIENT_ID` は callback URL を追加した方とは
+  別の App を指していた。** GitHub は「その client_id にこの redirect_uri は紐づいていない」
+  という同じ文言を App 取り違えのときにも出すので、URL のスペルを疑う前に
+  **App の General ページに出ている Client ID と、実際に送信されている `client_id` を
+  突き合わせる**のが早い。
+- ghcr.io のリポジトリ名は**小文字必須**（`ghcr.io/daiius/...`）。
 
-ベースライン化が済めば、以降は通常のマイグレーション経路（`migrate.js`）に戻る。
+## リリース後の宿題
 
-### 2. 本番動作確認
+### 1. GitHub App の役割を分ける
 
-単一オリジン化（ブラウザは `https://<frontend-domain>` しか叩かず、`/api/*` は Vercel の
-rewrite 経由で VPS の server-ts に届く）に伴い、確認すべき点が変わっている。
+本番用 App と開発用 App が別々に存在しているので、役割を確定させる。
 
-前提として確認しておくこと:
+🔒 **本番用 App の callback URL から `http://localhost:3000/...` を外すこと。**
+localhost は誰のマシンでも同じ URL なので、本番の資格情報に紐づいていると、
+攻撃者が手元で listener を立てて `redirect_uri=http://localhost:3000/...` を指定した
+認可 URL を踏ませるだけで**本番 App の認可コードを受け取れる**。
+ローカル dev / リモート dev の callback は開発用 App 側に寄せる。
 
-- GitHub OAuth App の **Authorization callback URL は公開オリジン側**（`https://<frontend-domain>/api/auth/callback/github`）。
-  API ドメインには向けない（ブラウザは API ドメインを踏まないため）。
-  ローカル dev / リモート dev (`<dev-host>`) の callback も併存登録してよい
-- server-ts の **`BETTER_AUTH_URL` は公開オリジン**（`https://<frontend-domain>`）。
-  API ドメインではない。better-auth はここから `redirect_uri` を組み立てる
-- `COOKIE_DOMAIN` / `CORS_ORIGINS` はもう読まれない（→ 下の「構成の経緯メモ」）
+- OAuth App / GitHub App のどちらも callback URL は **10 件まで**登録できる
+  （「1 件しか登録できないから環境ごとに分ける」ではなく、上記のセキュリティ上の理由で分ける）
+- ⚠ **2026-08-03 以降に作成された App は `redirect_uri` の完全一致が既定**。
+  それ以前の App は wildcard matching が有効でサブディレクトリ / サブドメインが通るので、
+  古い App の感覚で新しい App を作ると弾かれる
+- OAuth App への統一は不要。GitHub 自身が GitHub Apps を推奨している
+  （fine-grained permissions・短命トークン）
 
-動作確認:
+### 2. `Tasks` の重複 FK を削除
 
-- Vercel の Production deploy 完了確認
-- ログインフロー: `/` → Sign-in by Github → 認可 → `/tasks` でユーザ名表示
-- 旧データの表示: 過去のタスクが見えること
-  （`tasks.userId` は GitHub の数値 ID を保持する設計で、`account` 経由で解決する。
-  `user.id` が新しく振られても過去のタスクは見える）
-- タスク CRUD: 追加 / 完了切替 / 削除
-- ログアウト → `/` に戻る
+`projectId` → `Projects.id` の FK が 2 本ある。`drizzle-kit push` 時代の
+`Tasks_projectId_Projects_id_fk` と、ベースライン化が init の名前で追加した
+`Tasks_projectId_Projects_id_fkey`。動作上は無害だが余分な index を 1 本持つ。
+
+```sql
+ALTER TABLE `Tasks` DROP FOREIGN KEY `Tasks_projectId_Projects_id_fk`;
+```
+
+⚠ FK を落としても drizzle が張った index が残ることがあるので、実行後に
+`SHOW CREATE TABLE Tasks` で確認する。
+
+### 3. 本番 MySQL の認証と bind アドレスを確認
+
+ベースライン化の作業中、MariaDB クライアントが
+`--ssl-verify-server-cert is disabled, because of an insecure passwordless login`
+と警告した。**接続が passwordless と判定されている**という意味なので、
+`root` の TCP 認証と 3306 の bind アドレスを確認する。SSH トンネル越しなので
+即座に危険ではないが、3306 が外部から到達可能なら対処が要る。
+
 
 ## 将来検討: ursa-auth (自前 IdP) への統合
 
