@@ -21,5 +21,4 @@
 - **OAuth callback URL は公開オリジンに向ける**（API ドメインではない）。
   `BETTER_AUTH_URL` が `redirect_uri` の組み立て元であること。
 - **auth-client の baseURL 無指定**と、相対 baseURL が `new URL()` 検証で例外になる件。
-- **計画中**: ursa-auth（自前 OIDC IdP）への統合（→ issue #59）。
-- **要確認**: CSRF 対策と Vercel preview deployment の trustedOrigins 扱い。
+- **要確認**: CSRF 対策と Vercel preview deployment の trustedOrigins 扱い（#63）。
