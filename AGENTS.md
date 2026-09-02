@@ -228,10 +228,22 @@ PR レビュー bot。設定は [`.github/review-bot.json`](./.github/review-bot
 ## 認証（better-auth / GitHub OAuth）
 
 - **OAuth callback URL は公開オリジン（Next.js 側）に向ける。** API ドメインには向けない
-  （ブラウザは API ドメインを踏まないため）。callback URL は複数登録できるので併存させてよい:
+  （ブラウザは API ドメインを踏まないため）:
   `https://<frontend-domain>/api/auth/callback/github`（本番）/
   `https://<dev-host>/api/auth/callback/github`（リモート dev）/
   `http://localhost:3000/api/auth/callback/github`（ローカル dev）。
+- 🔒 **本番用と開発用の App を分け、本番用 App の callback に `http://localhost:3000/...` を入れない。**
+  localhost は誰のマシンでも同じ URL なので、本番の資格情報に紐づいていると、攻撃者が手元で
+  listener を立てて `redirect_uri=http://localhost:3000/...` の認可 URL を踏ませるだけで
+  **本番 App の認可コードを受け取れる**。callback URL は OAuth App / GitHub App とも 10 件まで
+  登録できるが、「登録できる」ことと「登録してよい」ことは別。
+- ⚠ **`redirect_uri is not associated with this application` が出たら、URL のスペルより先に
+  App の取り違えを疑う。** GitHub はこの文言を「client_id と redirect_uri の組が合わない」場合に
+  出すので、App が複数あると同じエラーになる。**App の General ページの Client ID と、
+  実際に送信されている `client_id`（ブラウザのアドレスバーで見える）を突き合わせる**のが早い。
+- ⚠ **2026-08-03 以降に作成された App は `redirect_uri` の完全一致が既定。**
+  それ以前の App は wildcard matching が有効でサブディレクトリ / サブドメインが通るため、
+  古い App の感覚で新しい App を作ると弾かれる。
 - better-auth は **`BETTER_AUTH_URL` から `redirect_uri` を組み立てる**ので、
   `BETTER_AUTH_URL` は**公開オリジン**でなければならない（API ドメインではない）。
 - `nextjs/src/lib/auth-client.ts` は `createAuthClient()` を **baseURL 無指定**で呼ぶ
@@ -274,10 +286,16 @@ PR レビュー bot。設定は [`.github/review-bot.json`](./.github/review-bot
 - **server-ts**: ghcr.io にイメージを push して VPS 側で pull。手元から:
   ```sh
   docker build --platform=linux/amd64 --push \
-    -t ghcr.io/<owner>/sekirei-todo-server-ts \
+    -t ghcr.io/<owner>/sekirei-todo-server-ts:latest \
+    -t ghcr.io/<owner>/sekirei-todo-server-ts:$(git rev-parse --short HEAD) \
     -f server-ts/Dockerfile.prod .
   ```
-  macOS ホスト → linux/amd64 ターゲットなので `--platform` 必須。
+  ⚠ **`<owner>` は小文字で書く。** レジストリのリポジトリ名は小文字必須で、
+  GitHub のユーザ名の大文字をそのまま使うと `repository name must be lowercase` で落ちる。
+  macOS ホスト → linux/amd64 ターゲットなら `--platform` 必須（linux/amd64 ホストなら実質無害）。
+  🔒 **`:latest` だけでなく短縮 sha のタグも打つ。** `:latest` を上書きすると戻り先が
+  VPS のローカルに残っているイメージだけになる。VPS 側では **pull より前に**
+  `docker tag ...:latest ...:rollback` で現行イメージへ退避タグを打っておくと確実。
 - **DB migration**: migrate / seed は **server-ts と同じイメージに同梱**してある
   （適用する SQL とコードのバージョンが構造的に一致する）。使い捨てコンテナとして明示的に実行し、
   **起動時の自動適用はしない**（失敗時の挙動と、インスタンスを増やしたときの競合が読めなくなるため）:
@@ -298,6 +316,14 @@ init マイグレーションは `Projects` / `Tasks` も `CREATE TABLE` する�
 
 これは本番運用に関わるので**手順とスクリプトはリポジトリに置いていない**。`.claude/local/` を参照すること。
 ベースライン化が済めば以降は通常経路に戻る。⚠ 一度きりの移行用で、日常の適用には使わない。
+
+✅ **本番 DB のベースライン化は 2026-09-03 に完了済み。** 以降は `migrate.js` の通常経路でよい。
+
+⚠ **このときの取りこぼし**: ベースライン化スクリプトは認証テーブルを「無ければ作る」だけで、
+**旧形式で既に存在するテーブルは素通りする**。本番の `account` が better-auth 1.7 より前の形
+（`issuer` 列が無く `account_id` が `text`）で残っていたが、テーブルの存在確認だけでは気づけなかった。
+`migrate.js` は実スキーマと突き合わせないので、この手のずれは**通常経路では永久に直らない**。
+似た移行をするときは `SHOW CREATE TABLE` まで見て init と突き合わせること。
 
 ## 構成の経緯（要点）
 
