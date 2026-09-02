@@ -30,7 +30,7 @@ Next.js の Server Component / Server Action と Hono API を組み合わせた�
 <!-- TODO: 「実装済み」「無効化」「計画中」に分けて列挙する。各項目から該当章へリンクする。
      実装済みの候補: GitHub OAuth ログイン / タスク CRUD / プロジェクト分類 / 単一オリジン構成 /
      dev セッション発行 / 生成済み SQL 方式のマイグレーション。
-     計画中の候補: ursa-auth (自前 IdP) への統合、eslint 復活、server-ts のテスト（→ ../TASKS.md）。 -->
+     計画中の候補: ursa-auth (自前 IdP) への統合、eslint 復活、server-ts のテスト（→ GitHub Issues）。 -->
 
 ## アーキ概観
 

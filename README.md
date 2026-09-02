@@ -1,203 +1,61 @@
-# Sekirei-Todo
-身の回りにセキレイがたくさんいるので、
-それをモチーフにしたTo-Do ListをNext.jsで作ります。
+# Sekirei Todo
 
-実現したい機能は以下です：
-[ ] localStorageとClient Componentを適切に使用し、ある程度のオフライン使用に耐える
-[x] セキレイのかわいいアイコンをメインに配置して、リアルに尻尾を振る
-[x] Server Componentも使用し、Client ComponentとのCompositionを試みる
-[x] drizzle orm によるデータベースとのやり取りを行う
+身の回りにセキレイがたくさんいるので、それをモチーフにした個人用の Todo アプリです。
+GitHub アカウントでログインし、プロジェクト単位でタスクを追加・完了・削除できます。
 
-## 2024/08/30更新開始
-他のプロジェクト開発で使ったノウハウを反映してみます
-データベース関連はTypeScriptのみで管理できそうなので、
-いつも同じ開発用データを保持したtmpfsを用いた設定に切り替えてみます。
-ディレクトリ構成もこの際に直しておきます。
+Next.js の Server Component / Server Action と Hono API を組み合わせた構成そのものが題材でもあり、
+「Next.js らしいデータのやり取り」を実際に動くアプリで確かめる場を兼ねています。
 
-X OAuthでは本番用と開発用のリダイレクト先が同じだったので
-特別な設定なく`next dev`でも`next build && next start`でも認証が機能しましたが、
-sekirei-todoではそうはいかないらしい、少し考えます...
+## 構成
 
-→.envファイルはgit管理範囲外なので、適宜編集することにしました。
-本番環境は本番環境用の.envファイルが別に用意されているので問題なさそうです。
+ブラウザから見えるオリジンは 1 つだけです。`/api/*` は Next.js の `rewrites()` が
+API サーバへ素通しするので、ブラウザが API のドメインを直接踏むことはありません。
 
-
-
-
-## 宣伝用のリンク+ Open Graph Imageの設定
-これまでルートURLを認証必須として各ユーザのタスクを表示していましたが、
-WebアプリのURLを貼って紹介する際にogimageの取得が難しいことに気付きました。
-サービスの説明自体も欲しいですし、ルートURLはSekirei Todo自体の説明として
-使ってみようと思います。
-
-
-## 環境変数の切り替えをどうするか？
-`next build && next start`では`NODE_ENV=production`が定義されている
-
-`next dev`では何もない
-
-.env.* はNext.js環境に自動でロードされて、
-\*部分には`NODE_ENV`が入るらしい、
-
-`NODE_ENV=development`とすれば、.env.developmentが、
-`NODE_ENV=production`とすれば、.env.productionが読み込まれるそうなので
-これを活用してみたい
-
-## Next.jsらしいデータのやり取りを可視化したい
-```plantuml
-@startuml SPAのデータのやりとり
-title SPAのデータのやりとり
-Client -> "Web Server": WebアプリのURLにアクセス
-note over Client
-ロード画面を表示
-end note
-"Web Server" --> Client: HTML + JavaScriptを返す
-
-== 1往復目のHTTP通信完了 ==
-note over Client
-ユーザ毎のデータ以外の枠組みを表示
-end note
-
-Client -> "Web API Server": JavaScriptがWeb APIにアクセス
-note over Client
-ユーザ毎のデータのロード中...
-end note
-' database "データベース" as Database
-"Web API Server" -> Database: Web API サーバーがデータを要求
-Database --> "Web API Server": データベースがデータを返す
-"Web API Server" --> Client: JSON等の形式でデータを返す
-== 2往復目のHTTP通信完了 ==
-note over Client
-**SPA+ユーザ毎のデータが表示される**
-end note
-@enduml
+```
+[Browser] ──HTTPS──► [Next.js]  UI / Server Actions
+                        │        /api/* → rewrites() で素通し
+                        ▼
+                     [Hono API]  better-auth (GitHub OAuth) + タスク CRUD
+                        │
+                        ▼
+                     [MySQL]
 ```
 
-```plantuml
-@startuml
-title Next.js指向のデータのやりとり
+pnpm workspace で分割しています。
 
-Client -> Next.js : WebアプリのURLにアクセス
-Next.js -> Database : Next.jsがデータを要求
-note over Next.js
-ユーザ毎のデータのロード中...
-end note
-Next.js <-- Database: データベースからデータを返す
-Client <-- Next.js: ユーザ毎のデータに基づいた\nHTML+JavaScriptを返す
-== 1往復目のHTTP通信完了 ==
-note over Client
-**画面にデータが表示される!**
-end note
-@enduml
+| パッケージ | 役割 |
+|---|---|
+| [`nextjs/`](./nextjs) | Next.js アプリ（UI / Server Actions） |
+| [`server-ts/`](./server-ts) | Hono API + better-auth |
+| [`database/`](./database) | drizzle スキーマ + DB クライアント + migrate / seed |
+| [`honox/`](./honox) | 実験用（現在未使用） |
+
+**主な依存**: Node.js 22 / pnpm 10 / Next.js 16（Turbopack）/ React 19 / TypeScript 6 /
+Hono 4 / drizzle-orm / better-auth / MySQL 8.4
+
+## 動かす
+
+3 つのパッケージとも docker compose で動きます。ホストに公開されるポートは Next.js の 1 本だけです。
+
+```sh
+pnpm install
+pnpm dev          # → http://localhost:3000
+pnpm db:migrate   # 生成済み SQL を適用
+pnpm db:seed      # テストデータ投入（冪等）
 ```
 
-## ログイン状態の取得をクライアントコンポーネントに
-Headerのログアウトボタン及びユーザ名表示がdynamicである必要があったため
-下の問題が起きた様なきがする。
+⚠ env ファイル（`.env.database` / `.env.server-ts` / `.env.nextjs`）は gitignore 対象なので、
+clone 直後は手元で作成が必要です。中身は [AGENTS.md](./AGENTS.md) の「env ファイル構成」を参照してください。
 
-クライアントコンポーネントからもログイン、ログアウトできるので
-これを試してみる。
+## 文書
 
-## 想定外のserver dynamic rendering
-ユーザ情報をヘッダコンポーネントに表示するようにしていたが、
-これはdynamic server rendering (ビルド結果にfがつくやつ)になっている
+- [AGENTS.md](./AGENTS.md) — **リポジトリの正典**。開発コマンド・構成・規約はここに集約しています
+- [`prd/`](./prd/) — 仕様（あるべき設計）
+- 進行中の課題は GitHub Issues
 
-layout.tsxがdynamicになってしまっているせいか、
-その下のすべてのページがdynamicになっている...?
+このリポジトリは公開しているため、秘密情報・実ドメイン名・本番環境に関する情報は
+コードにも文書にも持ち込みません（→ [AGENTS.md](./AGENTS.md) の「公開リポジトリ方針」）。
 
-これを解決したい
+---
 
-## next build && next start 時の認証エラー
-middlewareからPoolConnectionを呼び出そうとすると
-PoolConnection is not a constructorというエラーが出る
-
-await mysql.createConnectionすると大丈夫なので、
-jestのテストをどうするか（このためにもPoolConnectionにしていた）は
-再考することにしたい
-
-## tRPCの導入
-事前の設定やコーディングがある程度必要だが、1時間もあれば導入できた。
-使い心地はストレスフリーでとてもよい
-
-## テストデータの書き込み方法検討
-データベースが毎回まっさらからスタートだとテストしづらい気が...
-どこかのタイミングでパスワードなどハッシュ化したうえで記録したいが...
-- MySQLマイグレーション時に、テスト中か否かのフラグを読み取って
-場合に応じて書き込み処理を行う。
-  - パスワードのハッシュ化などを適切に関数化しておけば、
-  これも適切に行えそう
-- MySQLマイグレーション後にテストデータを追加する。
-これはsqlスクリプトとしてinsert文を手書きして行う。
-  - ハッシュ化した値は何らかの方法でコピペしないといけないかも
-- Next.jsのServer Action等として、テスト用データの追加コードを動かす
-  - 環境変数やテスト用ボタンを押すことで、テスト用データが書き込まれる。
-  その場合2重に書き込んだ場合や、テストの手間を考える必要がある
-
-技術的に少し難易度が高くなりそうだが、最初の案を実装してみる
-
-## DrizzleとDockerとMySQLと...
-これまでの開発環境では、MySQL Docker Imageを使っていた
-
-マルチステージビルドとしてDB設定関連のファイルを先に生成して、
-実行用のイメージに移すことで起動時間を短縮するものも使った
-
-現在は...
-- 素のMySQLコンテナを生成
-- 開発環境用のNext.jsコンテナを生成
-- 開発環境用のNext.jsコンテナからDrizzleを実行し、MySQLコンテナにSchemaに沿ったDBを生成
-
-という順番で行っているが、いくつか問題がありそう
-1. テスト用のデータを追加するために/docker-entrypoint-initdb.dに
-ファイルを追加する方法が上手くいかない
-2. drizzle-kit push を使う場合にはすでにDBにデータがある場合失敗する
-
-...なので、感覚としては
-- マイグレーションのためだけのコンテナを用意し、
-MySQLデータベースにマイグレーションとテストデータ投入を行う
-- 開発環境起動時にはそこで得られたデータベース内容を元に起動する
-
-...といったことをしたい
-npmのmonorepo機能、workspaceが使える？試してみるか...
-→ OK. monorepo機能を用いたマイグレーション機構を追加、mainブランチに取り込み
-
-## DB設計
-- タスクをプロジェクト毎に管理できるようにする
-- （他のユーザはいないと思うが）ユーザごとに確実にデータを分ける
-
-```plantuml
-hide circle
-skinparam linetype ortho
-entity Users {
-  * id: varchar(128) <<unique username>>
-  * passWithSalt: binary(256)
-  --
-}
-
-entity Projects {
-  * id: varchar(256) <<Project name, unique per user>>
-  * userId: varchar(128)
-}
-
-entity Tasks {
-  * id: bigint autoincrement
-  * userId: 
-}
-
-Users ||--o{ Projects
-Users ||--o{ Tasks
-Tasks }o--o| Projects
-```
-- Userから見ると...
-  - 関連するTasksは0個かもしれないし、多数かもしれない
-  - 関連するProjectsは0個かもしれないし、多数かもしれない
-- Tasksから見ると...
-  - 関連するUsersはただ1つのみ
-  - 関連するProjectsは0個かただ1つのみ
-- Projectsから見ると...
-  - 関連するUsersはただ1つのみ
-  - 関連するTasksは0個かもしれないし、多数かもしれない
-
-...つまり、複数のユーザがタスクやプロジェクトを共有しようとすると、
-この設計ではうまくいかないことになる...(が、最初はこれでいいか...)
-
-
+以前この README には 2024 年からの開発日誌を書いていました。内容は git の履歴に残っています。

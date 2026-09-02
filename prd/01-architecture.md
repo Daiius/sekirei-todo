@@ -18,4 +18,4 @@
 - **パッケージ分割**（`nextjs` / `server-ts` / `database` / 未使用の `honox`）と各々の責務・依存方向。
   catalog によるバージョン共通化と `minimumReleaseAge` の方針。
 - **主要技術の選定理由**（Next.js 16 + Turbopack / Hono / Drizzle 1.0-rc / MySQL 8.4）。
-- **gap / 計画中**: `honox` の去就、server-ts のテスト基盤、eslint の復活（→ [`../TASKS.md`](../TASKS.md)）。
+- **gap / 計画中**: `honox` の去就（#64）、server-ts のテスト基盤（#62）、eslint の復活（#60）。

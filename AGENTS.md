@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > このファイルがリポジトリの**正典**です（使用する各コーディングエージェント共通）。簡潔・リンク中心に保つこと。
-> 仕様の詳細は [`prd/`](./prd/)、次の作業は [`TASKS.md`](./TASKS.md) を参照。
+> 仕様の詳細は [`prd/`](./prd/)、進行中の課題は GitHub Issues を参照。
 
 ## プロジェクト目的
 
@@ -11,10 +11,6 @@ Next.js (Vercel) + Hono (VPS) + MySQL (VPS) の構成で、GitHub OAuth でロ�
 → 詳細は [`prd/README.md`](./prd/README.md)。
 
 ## ドキュメント（PRD）
-
-⚠ `prd/` は現在**骨組みのみ**。各章は「何を書く場所か」だけが書かれた未記述の雛形で、
-実装から起こし直す作業が残っている（下表の内容は**これから書く予定**のもの）。
-現時点で内容が揃っているのはこの AGENTS.md 側なので、まずはここを読むこと。
 
 | 文書 | 内容 |
 |---|---|
@@ -194,10 +190,9 @@ cd nextjs    && ./node_modules/.bin/tsc --noEmit
 docker compose config -q      # compose ファイルの構文確認（⚠ -q を必ず付ける。無いと secret が stdout に出る）
 ```
 
-- ⚠ **`honox` の `tsc --noEmit` は依存更新前から 6 件失敗している既知の破損。判定材料にしない。**
-  未使用パッケージなので放置している（消すか残すかは [`TASKS.md`](./TASKS.md)）。
-- **lint は現状設定ファイルが無い。** `next lint` が Next.js 15 で廃止された際に eslint 関連の
-  dev deps を外したまま。flat config + `eslint-config-next` での復活は [`TASKS.md`](./TASKS.md) の改善余地。
+- ⚠ **`honox` は静的チェックの対象外**（未使用の実験用パッケージで、`tsc --noEmit` が通らない）。
+  判定材料にしない。
+- **lint は設定していない**（`next lint` の廃止時に eslint 関連の dev deps を外したまま）。
 
 ## Git / PR 運用
 
@@ -232,18 +227,8 @@ PR レビュー bot。設定は [`.github/review-bot.json`](./.github/review-bot
   `https://<frontend-domain>/api/auth/callback/github`（本番）/
   `https://<dev-host>/api/auth/callback/github`（リモート dev）/
   `http://localhost:3000/api/auth/callback/github`（ローカル dev）。
-- 🔒 **本番用と開発用の App を分け、本番用 App の callback に `http://localhost:3000/...` を入れない。**
-  localhost は誰のマシンでも同じ URL なので、本番の資格情報に紐づいていると、攻撃者が手元で
-  listener を立てて `redirect_uri=http://localhost:3000/...` の認可 URL を踏ませるだけで
-  **本番 App の認可コードを受け取れる**。callback URL は OAuth App / GitHub App とも 10 件まで
-  登録できるが、「登録できる」ことと「登録してよい」ことは別。
-- ⚠ **`redirect_uri is not associated with this application` が出たら、URL のスペルより先に
-  App の取り違えを疑う。** GitHub はこの文言を「client_id と redirect_uri の組が合わない」場合に
-  出すので、App が複数あると同じエラーになる。**App の General ページの Client ID と、
-  実際に送信されている `client_id`（ブラウザのアドレスバーで見える）を突き合わせる**のが早い。
-- ⚠ **2026-08-03 以降に作成された App は `redirect_uri` の完全一致が既定。**
-  それ以前の App は wildcard matching が有効でサブディレクトリ / サブドメインが通るため、
-  古い App の感覚で新しい App を作ると弾かれる。
+- 🔒 **環境ごとに別の OAuth / GitHub App を使う。** 1 つの App に複数環境の callback URL を
+  相乗りさせない（App の実体と運用手順は `.claude/local/` 側）。
 - better-auth は **`BETTER_AUTH_URL` から `redirect_uri` を組み立てる**ので、
   `BETTER_AUTH_URL` は**公開オリジン**でなければならない（API ドメインではない）。
 - `nextjs/src/lib/auth-client.ts` は `createAuthClient()` を **baseURL 無指定**で呼ぶ
@@ -255,86 +240,6 @@ PR レビュー bot。設定は [`.github/review-bot.json`](./.github/review-bot
   過去のタスクを救出したい場合は `account` レコードを挿入して、login 時に既存 `user.id` へマップさせる。
   ローカルでは `.env.database` の `TEST_GITHUB_ID` を設定すると `database/seed.ts` が自動でセットアップする。
 
-## 本番デプロイ
-
-本番も dev と同じ**単一オリジン**構成。ブラウザは `https://<frontend-domain>` しか叩かず、
-`/api/*` は Vercel の rewrite を経由して VPS の server-ts に届く。
-
-**Vercel (Next.js) の env**
-
-| 変数 | 値 | 用途 |
-|---|---|---|
-| `API_URL` | `https://<api-domain>:<port>` | **rewrite の宛先**（`next.config.ts`）兼 Server Action / `getSession` の呼び先。絶対 URL 必須 |
-| `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_API_URL` | （不要） | 単一オリジン化で参照コードが無くなった。残っていても害は無い |
-
-⚠ `rewrites()` は **build 時**に評価されるので、`API_URL` を変えたら redeploy が要る。
-
-**VPS (server-ts) の env**
-
-| 変数 | 値 | 補足 |
-|---|---|---|
-| `BETTER_AUTH_URL` | `https://<frontend-domain>` | ⚠ **公開オリジン**。API ドメインではない |
-| `TRUSTED_ORIGINS` | `https://<frontend-domain>` | 公開オリジン 1 つ |
-| `BETTER_AUTH_SECRET` | （秘密） | cookie 署名鍵 |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | （秘密） | GitHub OAuth App |
-| `CORS_ORIGINS` | （不要・空） | 同一オリジンなのでプリフライトが起きない。空なら `app.ts` は cors を張らない |
-| `COOKIE_DOMAIN` | **廃止** | コードから参照していない。cookie は host-only + `SameSite=Lax` |
-
-**手順**
-
-- **Next.js**: `main` ブランチを Vercel が自動デプロイ。env は Vercel ダッシュボードで設定。
-- **server-ts**: ghcr.io にイメージを push して VPS 側で pull。手元から:
-  ```sh
-  docker build --platform=linux/amd64 --push \
-    -t ghcr.io/<owner>/sekirei-todo-server-ts:latest \
-    -t ghcr.io/<owner>/sekirei-todo-server-ts:$(git rev-parse --short HEAD) \
-    -f server-ts/Dockerfile.prod .
-  ```
-  ⚠ **`<owner>` は小文字で書く。** レジストリのリポジトリ名は小文字必須で、
-  GitHub のユーザ名の大文字をそのまま使うと `repository name must be lowercase` で落ちる。
-  macOS ホスト → linux/amd64 ターゲットなら `--platform` 必須（linux/amd64 ホストなら実質無害）。
-  🔒 **`:latest` だけでなく短縮 sha のタグも打つ。** `:latest` を上書きすると戻り先が
-  VPS のローカルに残っているイメージだけになる。VPS 側では **pull より前に**
-  `docker tag ...:latest ...:rollback` で現行イメージへ退避タグを打っておくと確実。
-- **DB migration**: migrate / seed は **server-ts と同じイメージに同梱**してある
-  （適用する SQL とコードのバージョンが構造的に一致する）。使い捨てコンテナとして明示的に実行し、
-  **起動時の自動適用はしない**（失敗時の挙動と、インスタンスを増やしたときの競合が読めなくなるため）:
-  ```sh
-  docker compose run --rm --no-deps <server サービス> migrate.js
-  ```
-  ⚠ 本番イメージは distroless（`ENTRYPOINT` が暗黙に `node`）なので**渡すのはパスだけ**。
-  `node /app/migrate.js` と書くと node に node を渡すことになり動かない。
-  ⚠ 適用される SQL は `docker build` 時点のイメージに焼き込まれる。
-  **先に `pnpm db:generate` の生成物を commit し、その commit からビルドしたイメージを push すること。**
-
-### ⚠ 本番 DB への初回適用だけはベースライン化が要る
-
-init マイグレーションは `Projects` / `Tasks` も `CREATE TABLE` する。この 2 テーブルと実データが
-既にある本番 DB に対して `migrate.js` をそのまま流すと **1 文目の "table already exists" で落ちる**。
-既存データには触れず init との差分だけを当て、`__drizzle_migrations` に init を適用済みとして刻む
-**ベースライン化**を先に一度だけ行う（ダンプして作り直す案は採らない）。
-
-これは本番運用に関わるので**手順とスクリプトはリポジトリに置いていない**。`.claude/local/` を参照すること。
-ベースライン化が済めば以降は通常経路に戻る。⚠ 一度きりの移行用で、日常の適用には使わない。
-
-✅ **本番 DB のベースライン化は 2026-09-03 に完了済み。** 以降は `migrate.js` の通常経路でよい。
-
-⚠ **このときの取りこぼし**: ベースライン化スクリプトは認証テーブルを「無ければ作る」だけで、
-**旧形式で既に存在するテーブルは素通りする**。本番の `account` が better-auth 1.7 より前の形
-（`issuer` 列が無く `account_id` が `text`）で残っていたが、テーブルの存在確認だけでは気づけなかった。
-`migrate.js` は実スキーマと突き合わせないので、この手のずれは**通常経路では永久に直らない**。
-似た移行をするときは `SHOW CREATE TABLE` まで見て init と突き合わせること。
-
-## 構成の経緯（要点）
-
-詳細は git log と過去のディスカッション。
-
-- 当初 better-auth は Next.js 側に置こうとしたが、Vercel から VPS の MySQL に到達できないため server-ts に移した。
-- `api.<root-domain>/sekirei-todo/...` の path-prefix 構成で詰まった
-  （better-auth の router basePath とリバースプロキシ strip 後の path が一致せず 404）→ 専用サブドメインを切って解決。
-- cookie 共有のため parent domain cookie（`COOKIE_DOMAIN`）を使っていたが、**単一オリジン化で不要になった**。
-  API ドメイン自体は rewrite の宛先として残っている（ブラウザからは踏まれない）。
-
 ## 公開リポジトリ方針
 
 コード・文書に以下を持ち込まない（詳細は [prd/README.md](./prd/README.md) §秘匿方針）:
@@ -343,11 +248,13 @@ init マイグレーションは `Projects` / `Tasks` も `CREATE TABLE` する�
   `.env*` は**読まない・コミットしない**。
 - **実ドメイン名**。文書中では `<frontend-domain>` / `<api-domain>` / `<dev-host>` /
   `<root-domain>` / `<owner>` のプレースホルダを使う。
-- 本番/開発の具体情報（TLS・接続先・リバースプロキシ・トンネル設定）は**姿勢のみ**記述する。
-  本番運用に関わる実値・手順・スクリプトは `.claude/local/` に置く。
+- 🔒 **本番環境に関する情報は書かない。** デプロイ手順・env の値・TLS・接続先・
+  リバースプロキシ・トンネル設定・運用スクリプトは、姿勢の記述も含めて `.claude/local/` に置く。
+- 🔒 **一時的な状況の詳細は書かない。** 「いま何件壊れている」「次に何をする」といった、
+  時間とともに変わる情報は GitHub Issues に置く。この文書には**恒久的に成り立つこと**だけを書く。
 
 ## ローカル専用メモ（存在すれば読む）
 
-`.claude/local/`（gitignore 対象）が**存在する場合は読む**。本番 DB のベースライン化のような、
-本番運用に関わる手順とスクリプトはそこから辿る（個々のファイルは公開文書に列挙しない）。
+`.claude/local/`（gitignore 対象）が**存在する場合は読む**。**デプロイと本番運用に関する
+情報はすべてそこにある**（この文書には無い）。個々のファイルは公開文書に列挙しない。
 `git add -f` などで追跡下に入れないこと。
