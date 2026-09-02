@@ -17,11 +17,15 @@ const SignInButton: React.FC<
   <Button
     className={clsx('mt-2 p-2 flex flex-row', className)}
     onClick={async () => {
-      // better-auth は server-ts (別ホスト) にあるため callbackURL は
-      // Next.js 側のフルパスを渡す。NEXT_PUBLIC_APP_URL は Next.js のパブリック URL
+      // 単一オリジンなので callbackURL は相対パスでよい。
+      // better-auth の originCheckMiddleware は callbackURL に対して
+      // allowRelativePaths を有効にしており (dist/api/middlewares/origin-check.mjs →
+      // trusted-origins.mjs の isSafeRelativeURL)、`/tasks` のような単純な相対パスは
+      // trustedOrigins に無くても通る。callback は Location ヘッダにそのまま出るので、
+      // ブラウザが自オリジン基準で解決する。
       await authClient.signIn.social({
         provider: 'github',
-        callbackURL: `${process.env.NEXT_PUBLIC_APP_URL}/tasks`,
+        callbackURL: '/tasks',
       });
     }}
     {...props}

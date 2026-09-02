@@ -5,10 +5,14 @@ packages:
   - server-ts
 
 catalog:
-  typescript: ^6.0.3
-  "@types/node": ^25.6.0
-  hono: ^4.12.16
-  zod: ^4.4.2
-  drizzle-orm: 1.0.0-rc.1
+  "@types/node": ^26.4.0
   drizzle-kit: 1.0.0-rc.1
+  drizzle-orm: 1.0.0-rc.1
   drizzle-zod: ^0.8.3
+  hono: ^4.13.5
+  typescript: ^6.0.3
+  zod: ^4.4.3
+
+# npm に公開されてから 3 日 (4320 分) 経っていないバージョンは選択しない。
+# 公開直後の不正パッケージ / 事故リリースを踏まないための猶予。
+minimumReleaseAge: 4320

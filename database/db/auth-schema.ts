@@ -5,6 +5,7 @@ import {
   timestamp,
   boolean,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/mysql-core';
 
 export const user = mysqlTable('user', {
@@ -43,7 +44,12 @@ export const account = mysqlTable(
   'account',
   {
     id: varchar('id', { length: 36 }).primaryKey(),
-    accountId: text('account_id').notNull(),
+    // better-auth 1.7 で account の identity は (issuer, accountId) にスコープされた。
+    // OAuth provider が独自の issuer を持たない場合は `local:oauth:<providerId>`
+    // (GitHub なら `local:oauth:github`) が入る。
+    issuer: varchar('issuer', { length: 255 }).notNull(),
+    // (issuer, accountId) の複合 unique index を張るため text ではなく varchar。
+    accountId: varchar('account_id', { length: 255 }).notNull(),
     providerId: text('provider_id').notNull(),
     userId: varchar('user_id', { length: 36 })
       .notNull()
@@ -60,7 +66,10 @@ export const account = mysqlTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index('account_userId_idx').on(table.userId)],
+  (table) => [
+    index('account_userId_idx').on(table.userId),
+    uniqueIndex('account_issuer_accountId_idx').on(table.issuer, table.accountId),
+  ],
 );
 
 export const verification = mysqlTable(

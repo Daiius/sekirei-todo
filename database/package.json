@@ -5,20 +5,27 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "scripts": {
+    "build": "tsx esbuild.config.ts",
+    "generate": "drizzle-kit generate",
+    "migrate": "tsx migrate.ts",
+    "seed": "tsx seed.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "catalog:",
     "drizzle-kit": "catalog:",
-    "tsx": "^4.21.0",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.12",
     "typescript": "catalog:"
   },
   "dependencies": {
-    "better-auth": "^1.6.9",
+    "better-auth": "^1.7.2",
     "drizzle-orm": "catalog:",
     "drizzle-zod": "catalog:",
-    "mysql2": "^3.15.2",
+    "mysql2": "^3.24.2",
     "zod": "catalog:"
   }
 }

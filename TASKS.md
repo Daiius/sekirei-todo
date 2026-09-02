@@ -1,40 +1,50 @@
 # 次に行う作業
 
-last updated: 2026-05-04
+last updated: 2026-09-01
 
 ## 本番リリース確定までの残作業
 
 ### 1. 本番 DB スキーマ適用
 
-旧 schema (next-auth 想定) → 新 schema (better-auth + account 経由参照) への移行が未適用。
+DB マイグレーションは `drizzle-kit push` から「生成済み SQL + drizzle-orm の `migrate()`」方式へ
+移行済み（→ `AGENTS.md` の「DB マイグレーション」節）。日常の適用はイメージに同梱した
+`migrate.js` を使い捨てコンテナとして流すだけで済む。
 
-方針: `tasks.userId` / `projects.userId` は GitHub の numeric id を保持し続け、
-ログイン時は `account` テーブル経由で session.user.id (UUID) → GitHub id を解決する。
-これで旧データの userId をいじる必要がなく、純粋にスキーマ追加 + FK 削除だけで済む。
+⚠ ただし **本番 DB への初回適用だけは、そのままでは通らない。**
+init マイグレーションは `Projects` / `Tasks` も `CREATE TABLE` するため、その 2 テーブルと
+実データが既にある本番 DB では 1 文目で落ちる。既存データには触れず、差分だけを当てて
+`__drizzle_migrations` に init を適用済みとして刻む**ベースライン化**が要る
+（ダンプして作り直す案は採らない）。
 
-差分:
-- `tasks.userId` / `projects.userId` の `user.id` への FK 制約を削除
-  (GitHub numeric id を保持するので user.id とは一致しない)
-- カラム長は `varchar(128)` → `varchar(36)` (既存 GitHub numeric id は 8 桁程度なので問題なし)
-- 新規テーブル: `user`, `session`, `account`, `verification`
+ベースライン化スクリプトと手順は、本番運用に関わるためリポジトリには置いていない。
+手元の `.claude/local/` を参照すること（gitignore 済み）:
 
-手順:
-1. SSH トンネルで本番 DB を localhost に転送 (cloudflared / ssh -L)
-2. **管理者権限のあるユーザ** で `drizzle-kit push --force` を直接実行
-   ```sh
-   DB_HOST=127.0.0.1 \
-   MYSQL_USER=<admin> \
-   MYSQL_PASSWORD=<admin-password> \
-   MYSQL_DATABASE=sekirei_todo \
-   pnpm --filter database exec drizzle-kit push --force
-   ```
-   (`pnpm db:migrate` は dev 用 env を source するので本番には使わない)
-3. データ損失警告は出るが、既存データは新サイズに収まるので実害なし
+- `.claude/local/prod-db-baseline.sh` — ベースライン化スクリプト（既定は `--check` で DB を変更しない）
+- `.claude/local/prod-db-baseline.md` — 適用手順・切り戻し
+
+ベースライン化が済めば、以降は通常のマイグレーション経路（`migrate.js`）に戻る。
 
 ### 2. 本番動作確認
 
+単一オリジン化（ブラウザは `https://<frontend-domain>` しか叩かず、`/api/*` は Vercel の
+rewrite 経由で VPS の server-ts に届く）に伴い、確認すべき点が変わっている。
+
+前提として確認しておくこと:
+
+- GitHub OAuth App の **Authorization callback URL は公開オリジン側**（`https://<frontend-domain>/api/auth/callback/github`）。
+  API ドメインには向けない（ブラウザは API ドメインを踏まないため）。
+  ローカル dev / リモート dev (`<dev-host>`) の callback も併存登録してよい
+- server-ts の **`BETTER_AUTH_URL` は公開オリジン**（`https://<frontend-domain>`）。
+  API ドメインではない。better-auth はここから `redirect_uri` を組み立てる
+- `COOKIE_DOMAIN` / `CORS_ORIGINS` はもう読まれない（→ 下の「構成の経緯メモ」）
+
+動作確認:
+
 - Vercel の Production deploy 完了確認
 - ログインフロー: `/` → Sign-in by Github → 認可 → `/tasks` でユーザ名表示
+- 旧データの表示: 過去のタスクが見えること
+  （`tasks.userId` は GitHub の数値 ID を保持する設計で、`account` 経由で解決する。
+  `user.id` が新しく振られても過去のタスクは見える）
 - タスク CRUD: 追加 / 完了切替 / 削除
 - ログアウト → `/` に戻る
 
@@ -53,10 +63,10 @@ sekirei-todo 側のテーブルは tasks/projects だけで済む。一度入れ
 ### sekirei-todo にとっての相性 (調査結果サマリ)
 
 - ursa-auth は `oidcProvider` + `jwt` plugin で **`/api/auth/oauth2/{authorize,token,userinfo}` と JWKS をすでに提供**
-- 重要: ID token / userinfo に `<provider>_id` claim (例 `github_id: "5844472"`) を載せる仕組み
+- 重要: ID token / userinfo に `<provider>_id` claim (例 `github_id: "<github-numeric-id>"`) を載せる仕組み
   (`getAdditionalUserInfoClaim` で account テーブルから自動投入) がある
   → sekirei-todo は今と同じ「**tasks.userId に GitHub numeric id を保持**」をそのまま続けられる
-- ursa-auth の `.ursa-auth.config.json` には `https://sekirei.faveo-systema.net` がすでに
+- ursa-auth の `.ursa-auth.config.json` には `https://<frontend-domain>` がすでに
   `allowedRedirectPatterns` に登録されており、本統合を想定して設計されている
 - `examples/next` に **そのまま流用できる OIDC client 実装**が存在
   (`/ursa-auth/start-signin` → ursa-auth → `/ursa-auth/callback` → access_token を cookie 保存)
@@ -128,7 +138,11 @@ better-auth は trustedOrigins / cookie sameSite で守っているが、本番�
 
 ### honox の整理
 
-`honox/` は実験で作って未使用のまま。catalog に乗せて依存だけ最新化したが、使わないなら削除候補。
+`honox/` は実験で作って未使用のまま。catalog に乗せた依存の最新化は済んでいるので、
+残っているのは「消すか残すか」の判断だけ。
+
+⚠ `honox` の `tsc --noEmit` は依存更新前から 6 件失敗している既知の破損。
+未使用なので放置しているが、**静的チェックの判定材料にはしないこと**。
 
 ## 構成の経緯メモ
 
@@ -138,3 +152,8 @@ better-auth は trustedOrigins / cookie sameSite で守っているが、本番�
 - `api.<root>/sekirei-todo/...` の path-prefix 構成で詰まった (better-auth の router basePath と nginx strip 後の path が一致せず 404)
 - 専用サブドメイン (`<api-domain>:8443`) を切って解決
 - cookie 共有のため `COOKIE_DOMAIN=.<root-domain>` を設定 (parent domain cookie)
+- **その後、単一オリジン化でこれは不要になった。** ブラウザは `https://<frontend-domain>` しか
+  叩かず、`/api/*` は Vercel の rewrite 経由で server-ts に届くので、cookie は host-only +
+  `SameSite=Lax` で足りる。`COOKIE_DOMAIN` / `CORS_ORIGINS` はコードから参照していない
+  （env に残っていても無害だが、消しておくと混乱がない）。
+  API ドメイン自体は rewrite の宛先として残っている（ブラウザからは踏まれない）

@@ -39,4 +39,6 @@ next-env.d.ts
 
 # Add project specific settings...
 .env*
+# リモート dev 用の env の雛形だけは追跡する（実ファイル .env.remote は上で ignore）
+!.env.remote.example
 .drizzle/

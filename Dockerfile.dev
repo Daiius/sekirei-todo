@@ -18,3 +18,4 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 # コンテナ実行時の初期ソース。compose の develop.watch sync で随時更新される。
 COPY database ./database
 COPY server-ts ./server-ts
+COPY nextjs ./nextjs
