@@ -3,5 +3,6 @@
 @AGENTS.md
 
 開発ガイド・仕様・参照リンクはすべて [AGENTS.md](./AGENTS.md) に集約しています。まず AGENTS.md を読んでください。
-仕様の詳細は [`prd/`](./prd/)、次に行う作業は [`TASKS.md`](./TASKS.md) にあります。
-`.claude/local/` が存在すれば、セッション開始時に必ず読むこと。
+仕様の詳細は [`prd/`](./prd/)、進行中の課題は GitHub Issues にあります。
+デプロイと本番運用に関する情報は AGENTS.md には**ありません**。`.claude/local/` が存在すれば、
+セッション開始時に必ず読むこと。

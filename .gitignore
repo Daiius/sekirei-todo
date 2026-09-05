@@ -42,3 +42,6 @@ next-env.d.ts
 # リモート dev 用の env の雛形だけは追跡する（実ファイル .env.remote は上で ignore）
 !.env.remote.example
 .drizzle/
+
+# Claude Code が subagent 用に作る worktree（リポジトリ内に作られるため除外する）
+.claude/worktrees/
