@@ -242,12 +242,16 @@ PR レビュー bot。設定は [`.github/review-bot.json`](./.github/review-bot
 
 ## 公開リポジトリ方針
 
-コード・文書に以下を持ち込まない（詳細は [prd/README.md](./prd/README.md) §秘匿方針）:
+**隠す対象は文書**（詳細は [prd/README.md](./prd/README.md) §公開リポジトリでの秘匿方針）:
 
-- **秘密情報**（`.env*`・`BETTER_AUTH_SECRET`・DB 資格情報・cookie の値・OAuth client secret）。
-  `.env*` は**読まない・コミットしない**。
-- **実ドメイン名**。文書中では `<frontend-domain>` / `<api-domain>` / `<dev-host>` /
+- **秘密情報**は文書にもコードにも書かない（`.env*` の値・`BETTER_AUTH_SECRET`・DB 資格情報・
+  cookie の値・OAuth client secret）。`.env*` は**読まない・コミットしない**。
+- **文書に実ドメイン名を書かない。** `<frontend-domain>` / `<api-domain>` / `<dev-host>` /
   `<root-domain>` / `<owner>` のプレースホルダを使う。
+- ⚠ **コード中に現れる公開フロントエンドの URL は許容する。** OG image の URL は絶対でなければ
+  ならず（クローラが相対 URL を解決できない）、`nextjs/src/app/layout.tsx` の metadata に
+  実ドメインが入っている。既に公開されている情報なので隠す実益がない。
+  🔒 **緩むのはここだけ。** API ドメイン・VPS の接続先・資格情報・env の値を隠す線は変わらない。
 - 🔒 **本番環境に関する情報は書かない。** デプロイ手順・env の値・TLS・接続先・
   リバースプロキシ・トンネル設定・運用スクリプトは、姿勢の記述も含めて `.claude/local/` に置く。
 - 🔒 **一時的な状況の詳細は書かない。** 「いま何件壊れている」「次に何をする」といった、
