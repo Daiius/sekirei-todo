@@ -7,7 +7,9 @@
 
 セキレイをモチーフにした**個人用**の Todo Web アプリ。
 Next.js (Vercel) + Hono (VPS) + MySQL (VPS) の構成で、GitHub OAuth でログインし
-プロジェクト単位でタスクを管理する。
+自分のタスクを追加・編集・削除する。
+⚠ **プロジェクト単位の分類は DB スキーマだけがあり、UI・API とも未実装**
+（→ [`prd/00-product.md`](./prd/00-product.md) / [`prd/03-data-model.md`](./prd/03-data-model.md)）。
 → 詳細は [`prd/README.md`](./prd/README.md)。
 
 ## ドキュメント（PRD）
@@ -15,6 +17,7 @@ Next.js (Vercel) + Hono (VPS) + MySQL (VPS) の構成で、GitHub OAuth でロ�
 | 文書 | 内容 |
 |---|---|
 | [prd/README.md](./prd/README.md) | 目的 / スコープ / アーキ概観 / 索引 / 公開リポジトリでの秘匿方針 |
+| [prd/00-product.md](./prd/00-product.md) | 目的 / 利用者の範囲 / 非目標 / 画面と操作 / 機能の実装状況 |
 | [prd/01-architecture.md](./prd/01-architecture.md) | 単一オリジン構成 / ワークスペース分割 / パッケージ間の責務 |
 | [prd/02-auth.md](./prd/02-auth.md) | better-auth / GitHub OAuth / session と cookie / `tasks.userId` の意味論 |
 | [prd/03-data-model.md](./prd/03-data-model.md) | DB スキーマ（Users / Projects / Tasks / better-auth テーブル）とマイグレーション方式 |
@@ -66,8 +69,8 @@ Next.js (Vercel) + Hono (VPS) + MySQL (VPS) の構成で、GitHub OAuth でロ�
 Next.js は HTTP 経由で session を確認する形にしている。
 
 **主要バージョン**: Node.js 22（本番 container は `gcr.io/distroless/nodejs22-debian12`）/
-pnpm 10.33.2 (corepack) / Next.js 16.2.x（Turbopack・`cacheComponents=true`）/ React 19.2.x /
-TypeScript 6.x / Hono 4.12.x + @hono/node-server v2 / drizzle-orm・drizzle-kit 1.0-rc.1 /
+pnpm 10.33.2 (corepack) / Next.js 16.3.x（Turbopack・`cacheComponents=true`）/ React 19.2.x /
+TypeScript 6.x / Hono 4.13.x + @hono/node-server v2 / drizzle-orm・drizzle-kit 1.0-rc.1 /
 better-auth 1.7.x / MySQL 8.4。
 
 ### パッケージ
