@@ -22,7 +22,7 @@
     "typescript": "catalog:"
   },
   "dependencies": {
-    "better-auth": "^1.7.2",
+    "better-auth": "^1.7.7",
     "drizzle-orm": "catalog:",
     "drizzle-zod": "catalog:",
     "mysql2": "^3.24.2",

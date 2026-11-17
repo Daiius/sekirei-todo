@@ -7,7 +7,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@hono/node-server": "^2.1.1",
+    "@hono/node-server": "^2.1.6",
     "hono": "catalog:",
     "honox": "^0.1.61"
   },
@@ -20,6 +20,6 @@
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.12",
     "typescript": "catalog:",
-    "vite": "^8.2.2"
+    "vite": "^8.2.4"
   }
 }
