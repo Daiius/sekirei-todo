@@ -69,7 +69,7 @@ Next.js (Vercel) + Hono (VPS) + MySQL (VPS) の構成で、GitHub OAuth でロ�
 Next.js は HTTP 経由で session を確認する形にしている。
 
 **主要バージョン**: Node.js 22（本番 container は `gcr.io/distroless/nodejs22-debian12`）/
-pnpm 10.33.2 (corepack) / Next.js 16.3.x（Turbopack・`cacheComponents=true`）/ React 19.2.x /
+pnpm 10.33.2 (corepack) / Next.js 16.4.x（Turbopack・`cacheComponents=true`）/ React 19.2.x /
 TypeScript 6.x / Hono 4.13.x + @hono/node-server v2 / drizzle-orm・drizzle-kit 1.0-rc.1 /
 better-auth 1.7.x / MySQL 8.4。
 
